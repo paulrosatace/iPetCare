@@ -37,7 +37,9 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener; 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List; 
+import java.util.Map;
 import javax.swing.JCheckBox;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -157,27 +159,11 @@ public class homeFrame extends javax.swing.JFrame {
         jLabel11 = new javax.swing.JLabel();
         appointmentsButton = new javax.swing.JButton();
         recordsButton = new javax.swing.JButton();
-        servicesButton = new javax.swing.JButton();
         settingsButton = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
         appointmentsPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jPanel5 = new javax.swing.JPanel();
-        jPanel6 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        classNameTextfield = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        addressTextfield = new javax.swing.JTextField();
-        contactTextfield = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        jPanel17 = new javax.swing.JPanel();
-        totalBillTextfield = new javax.swing.JTextField();
-        jLabel22 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        emailTextfield = new javax.swing.JTextField();
-        jPanel4 = new javax.swing.JPanel();
         jButton3 = new javax.swing.JButton();
         jButton4 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
@@ -192,14 +178,31 @@ public class homeFrame extends javax.swing.JFrame {
         petNameTextfield = new javax.swing.JTextField();
         speciesTextField = new javax.swing.JTextField();
         breedTextField = new javax.swing.JTextField();
-        servicesTypesButton = new javax.swing.JButton();
         jDateChooser1 = new com.toedter.calendar.JDateChooser();
         jLabel15 = new javax.swing.JLabel();
         jLabel16 = new javax.swing.JLabel();
         assistantTextfield = new javax.swing.JTextField();
+        servicebutton = new javax.swing.JButton();
+        jPanel5 = new javax.swing.JPanel();
+        jPanel6 = new javax.swing.JPanel();
+        jLabel22 = new javax.swing.JLabel();
+        totalBillTextfield = new javax.swing.JTextField();
+        jLabel23 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+        jLabel13 = new javax.swing.JLabel();
         addAppointmentButton = new javax.swing.JButton();
+        jPanel9 = new javax.swing.JPanel();
+        jPanel16 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        classNameTextfield = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        addressTextfield = new javax.swing.JTextField();
+        emailTextfield = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        contactTextfield = new javax.swing.JTextField();
         servicesPanel = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jPanel12 = new javax.swing.JPanel();
@@ -209,22 +212,14 @@ public class homeFrame extends javax.swing.JFrame {
         groomingButton = new javax.swing.JButton();
         boardingButton = new javax.swing.JButton();
         petwalkingButton = new javax.swing.JButton();
-        jPanel22 = new javax.swing.JPanel();
-        trainingButton = new javax.swing.JButton();
         daycareButton = new javax.swing.JButton();
         miscellaneousButton = new javax.swing.JButton();
+        trainingButton = new javax.swing.JButton();
+        addButton = new javax.swing.JButton();
         jPanel15 = new javax.swing.JPanel();
         jPanel19 = new javax.swing.JPanel();
         jPanel23 = new javax.swing.JPanel();
         jPanel18 = new javax.swing.JPanel();
-        groomingServicesPanel = new javax.swing.JPanel();
-        jCheckBox1 = new javax.swing.JCheckBox();
-        jCheckBox2 = new javax.swing.JCheckBox();
-        jCheckBox3 = new javax.swing.JCheckBox();
-        jCheckBox4 = new javax.swing.JCheckBox();
-        jCheckBox5 = new javax.swing.JCheckBox();
-        jCheckBox6 = new javax.swing.JCheckBox();
-        jCheckBox7 = new javax.swing.JCheckBox();
         petWalkingServicesPanel = new javax.swing.JPanel();
         jCheckBox8 = new javax.swing.JCheckBox();
         jCheckBox9 = new javax.swing.JCheckBox();
@@ -248,8 +243,14 @@ public class homeFrame extends javax.swing.JFrame {
         jCheckBox23 = new javax.swing.JCheckBox();
         jCheckBox24 = new javax.swing.JCheckBox();
         jCheckBox25 = new javax.swing.JCheckBox();
-        jPanel20 = new javax.swing.JPanel();
-        addButton = new javax.swing.JButton();
+        groomingServicesPanel = new javax.swing.JPanel();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jCheckBox2 = new javax.swing.JCheckBox();
+        jCheckBox3 = new javax.swing.JCheckBox();
+        jCheckBox4 = new javax.swing.JCheckBox();
+        jCheckBox5 = new javax.swing.JCheckBox();
+        jCheckBox6 = new javax.swing.JCheckBox();
+        jCheckBox7 = new javax.swing.JCheckBox();
         recordsPanel = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         recordsTable = new javax.swing.JTable();
@@ -278,10 +279,10 @@ public class homeFrame extends javax.swing.JFrame {
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setResizable(false);
+        setMinimumSize(new java.awt.Dimension(2000, 1000));
 
         jPanel1.setMinimumSize(new java.awt.Dimension(1200, 700));
-        jPanel1.setPreferredSize(new java.awt.Dimension(1200, 700));
+        jPanel1.setPreferredSize(new java.awt.Dimension(2000, 1000));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         jPanel2.setBackground(new java.awt.Color(0, 0, 0));
@@ -330,18 +331,6 @@ public class homeFrame extends javax.swing.JFrame {
         });
         jPanel2.add(recordsButton);
 
-        servicesButton.setBackground(new java.awt.Color(0, 0, 0));
-        servicesButton.setForeground(new java.awt.Color(255, 255, 255));
-        servicesButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/services.png"))); // NOI18N
-        servicesButton.setText("Services");
-        servicesButton.setBorder(null);
-        servicesButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                servicesButtonActionPerformed(evt);
-            }
-        });
-        jPanel2.add(servicesButton);
-
         settingsButton.setBackground(new java.awt.Color(0, 0, 0));
         settingsButton.setForeground(new java.awt.Color(255, 255, 255));
         settingsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/settings.png"))); // NOI18N
@@ -356,11 +345,15 @@ public class homeFrame extends javax.swing.JFrame {
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
+        jPanel10.setPreferredSize(new java.awt.Dimension(2000, 1000));
         jPanel10.setLayout(new java.awt.CardLayout());
 
-        appointmentsPanel.setBackground(new java.awt.Color(239, 238, 234));
+        appointmentsPanel.setBackground(new java.awt.Color(51, 51, 51));
+        appointmentsPanel.setPreferredSize(new java.awt.Dimension(2000, 615));
+        appointmentsPanel.setRequestFocusEnabled(false);
         appointmentsPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jTable1.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jTable1.setForeground(new java.awt.Color(0, 0, 0));
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -388,105 +381,7 @@ public class homeFrame extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        appointmentsPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 400, 1160, 150));
-
-        jPanel5.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jPanel6.setBackground(new java.awt.Color(239, 238, 234));
-        jPanel6.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("CLIENT INFORMATION");
-        jPanel6.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, 240, -1));
-
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel3.setText("Client Name:");
-        jPanel6.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, -1, -1));
-
-        classNameTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                classNameTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel6.add(classNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 50, 140, -1));
-
-        jLabel4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel4.setText("Address:");
-        jPanel6.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 80, -1, -1));
-        jPanel6.add(addressTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 80, 140, -1));
-        jPanel6.add(contactTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, 140, -1));
-
-        jLabel6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel6.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel6.setText("Contact:");
-        jPanel6.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 140, 50, -1));
-
-        jPanel17.setBackground(new java.awt.Color(204, 204, 204));
-
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel22.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel22.setText("TOTAL BILL");
-
-        javax.swing.GroupLayout jPanel17Layout = new javax.swing.GroupLayout(jPanel17);
-        jPanel17.setLayout(jPanel17Layout);
-        jPanel17Layout.setHorizontalGroup(
-            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel22, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(jPanel17Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addComponent(totalBillTextfield, javax.swing.GroupLayout.PREFERRED_SIZE, 153, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(38, Short.MAX_VALUE))
-        );
-        jPanel17Layout.setVerticalGroup(
-            jPanel17Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel17Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel22)
-                .addGap(18, 18, 18)
-                .addComponent(totalBillTextfield, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(20, 20, 20))
-        );
-
-        jPanel6.add(jPanel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 180, 220, 100));
-
-        jLabel12.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel12.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel12.setText("Email:");
-        jPanel6.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 110, 40, -1));
-
-        emailTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                emailTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel6.add(emailTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 110, 140, -1));
-
-        jPanel5.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 240, 300));
-
-        appointmentsPanel.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(910, 60, 260, 320));
-
-        jPanel4.setBackground(new java.awt.Color(204, 204, 204));
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
-        );
-
-        appointmentsPanel.add(jPanel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 220, 100, -1));
+        appointmentsPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 390, 1490, 280));
 
         jButton3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jButton3.setText("Delete");
@@ -495,7 +390,7 @@ public class homeFrame extends javax.swing.JFrame {
                 jButton3ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(650, 560, 111, -1));
+        appointmentsPanel.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 690, 111, -1));
 
         jButton4.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jButton4.setText("Update");
@@ -504,7 +399,7 @@ public class homeFrame extends javax.swing.JFrame {
                 jButton4ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(513, 560, 110, -1));
+        appointmentsPanel.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 690, 110, -1));
 
         jButton5.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jButton5.setText("Edit");
@@ -513,7 +408,7 @@ public class homeFrame extends javax.swing.JFrame {
                 jButton5ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(388, 560, 110, -1));
+        appointmentsPanel.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 690, 110, -1));
 
         jButton6.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jButton6.setText("Print Receipt");
@@ -522,86 +417,122 @@ public class homeFrame extends javax.swing.JFrame {
                 jButton6ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(780, 560, -1, -1));
+        appointmentsPanel.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(880, 690, -1, -1));
 
         jPanel13.setBackground(new java.awt.Color(0, 0, 0));
         jPanel13.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel7.setBackground(new java.awt.Color(239, 238, 234));
+        jPanel7.setBackground(new java.awt.Color(230, 230, 230));
         jPanel7.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel7.setForeground(new java.awt.Color(0, 0, 0));
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel7.setText("PET INFORMATION");
-        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 20, 250, -1));
+        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 0, 250, 70));
 
         jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel8.setForeground(new java.awt.Color(0, 0, 0));
         jLabel8.setText("Pet Name:");
-        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 60, -1, -1));
+        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 80, 20));
 
         jLabel9.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel9.setForeground(new java.awt.Color(0, 0, 0));
         jLabel9.setText("Species:");
-        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 100, -1, -1));
+        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 220, 70, -1));
 
         jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel10.setForeground(new java.awt.Color(0, 0, 0));
         jLabel10.setText("Breed:");
-        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 150, -1, -1));
+        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 160, 60, -1));
 
         petNameTextfield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 petNameTextfieldActionPerformed(evt);
             }
         });
-        jPanel7.add(petNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 60, 130, -1));
+        jPanel7.add(petNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 80, 140, 30));
 
         speciesTextField.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 speciesTextFieldActionPerformed(evt);
             }
         });
-        jPanel7.add(speciesTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 100, 130, -1));
-        jPanel7.add(breedTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 150, 130, -1));
-
-        servicesTypesButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        servicesTypesButton.setText("Services Types");
-        servicesTypesButton.setEnabled(false);
-        servicesTypesButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                servicesTypesButtonActionPerformed(evt);
-            }
-        });
-        jPanel7.add(servicesTypesButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 20, 340, -1));
-        jPanel7.add(jDateChooser1, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 140, 150, 30));
+        jPanel7.add(speciesTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 220, 140, 30));
+        jPanel7.add(breedTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 149, 140, 30));
+        jPanel7.add(jDateChooser1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 149, 140, 30));
 
         jLabel15.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel15.setForeground(new java.awt.Color(0, 0, 0));
         jLabel15.setText("Schedule:");
-        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 145, -1, 20));
+        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 150, -1, 20));
 
         jLabel16.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel16.setForeground(new java.awt.Color(0, 0, 0));
         jLabel16.setText("Assign Assistant:");
-        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 150, -1, -1));
-        jPanel7.add(assistantTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(660, 140, 130, 30));
+        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 90, -1, -1));
+
+        assistantTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                assistantTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel7.add(assistantTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 80, 140, 30));
+
+        servicebutton.setText("Select Service");
+        servicebutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                servicebuttonActionPerformed(evt);
+            }
+        });
+        jPanel7.add(servicebutton, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 220, 140, 30));
+
+        jPanel13.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 660, 350));
+
+        jScrollPane3.setViewportView(jPanel13);
+
+        appointmentsPanel.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 680, 370));
+
+        jPanel5.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel6.setBackground(new java.awt.Color(204, 204, 255));
+        jPanel6.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel22.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel22.setText("TOTAL BILL:");
+        jPanel6.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 300, 110, 30));
+
+        totalBillTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                totalBillTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 300, 140, 30));
+
+        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel23.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel23.setText("₱");
+        jPanel6.add(jLabel23, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 300, 30, 30));
 
         jTextArea1.setEditable(false);
-        jTextArea1.setBackground(new java.awt.Color(255, 255, 255));
+        jTextArea1.setBackground(new java.awt.Color(204, 204, 204));
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
         jScrollPane4.setViewportView(jTextArea1);
 
-        jPanel7.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(288, 61, 520, 60));
+        jPanel6.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, 450, 240));
 
-        jPanel13.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 870, 230));
+        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel13.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel13.setText("SELECTED SERVICES");
+        jPanel6.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, 240, -1));
 
-        jScrollPane3.setViewportView(jPanel13);
-
-        appointmentsPanel.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 80, 890, 250));
-
+        addAppointmentButton.setBackground(new java.awt.Color(47, 110, 138));
         addAppointmentButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         addAppointmentButton.setText("Add Appointment");
         addAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
@@ -609,7 +540,65 @@ public class homeFrame extends javax.swing.JFrame {
                 addAppointmentButtonActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(addAppointmentButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(380, 350, 240, 30));
+        jPanel6.add(addAppointmentButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 300, 140, 30));
+
+        jPanel5.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 470, 350));
+
+        appointmentsPanel.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(1020, 10, 490, 370));
+
+        jPanel9.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel9.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel16.setBackground(new java.awt.Color(230, 230, 230));
+        jPanel16.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText("CLIENT INFORMATION");
+        jPanel16.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 240, -1));
+
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel3.setText("Client Name:");
+        jPanel16.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 80, -1, 30));
+
+        classNameTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                classNameTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel16.add(classNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 140, 30));
+
+        jLabel4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel4.setText("Address:");
+        jPanel16.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 130, 50, 30));
+        jPanel16.add(addressTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 130, 140, 30));
+
+        emailTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                emailTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel16.add(emailTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 190, 140, 30));
+
+        jLabel12.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel12.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel12.setText("Email:");
+        jPanel16.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 200, 40, -1));
+
+        jLabel6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel6.setForeground(new java.awt.Color(0, 0, 0));
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel6.setText("Contact:");
+        jPanel16.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 260, 50, -1));
+        jPanel16.add(contactTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 250, 140, 30));
+
+        jPanel9.add(jPanel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 280, 350));
+
+        appointmentsPanel.add(jPanel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 10, 300, 370));
 
         jPanel10.add(appointmentsPanel, "card3");
 
@@ -632,7 +621,7 @@ public class homeFrame extends javax.swing.JFrame {
         jPanel12.setLayout(jPanel12Layout);
         jPanel12Layout.setHorizontalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1198, Short.MAX_VALUE)
+            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1526, Short.MAX_VALUE)
         );
         jPanel12Layout.setVerticalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -648,7 +637,7 @@ public class homeFrame extends javax.swing.JFrame {
 
         jPanel21.setBackground(new java.awt.Color(102, 102, 102));
         jPanel21.setPreferredSize(new java.awt.Dimension(672, 75));
-        jPanel21.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 5));
+        jPanel21.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         groomingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         groomingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/grooming.png"))); // NOI18N
@@ -660,7 +649,7 @@ public class homeFrame extends javax.swing.JFrame {
                 groomingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(groomingButton);
+        jPanel21.add(groomingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 140, -1, -1));
 
         boardingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         boardingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/boarding.png"))); // NOI18N
@@ -672,7 +661,7 @@ public class homeFrame extends javax.swing.JFrame {
                 boardingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(boardingButton);
+        jPanel21.add(boardingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 50, -1, -1));
 
         petwalkingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         petwalkingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/petWalking.png"))); // NOI18N
@@ -684,11 +673,29 @@ public class homeFrame extends javax.swing.JFrame {
                 petwalkingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(petwalkingButton);
+        jPanel21.add(petwalkingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 50, -1, -1));
 
-        jPanel22.setBackground(new java.awt.Color(102, 102, 102));
-        jPanel22.setPreferredSize(new java.awt.Dimension(672, 75));
-        jPanel22.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 5));
+        daycareButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        daycareButton.setText(" Daycare Services");
+        daycareButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        daycareButton.setPreferredSize(new java.awt.Dimension(180, 75));
+        daycareButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                daycareButtonActionPerformed(evt);
+            }
+        });
+        jPanel21.add(daycareButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 140, -1, -1));
+
+        miscellaneousButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        miscellaneousButton.setText("Miscellaneous Services");
+        miscellaneousButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        miscellaneousButton.setPreferredSize(new java.awt.Dimension(180, 75));
+        miscellaneousButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miscellaneousButtonActionPerformed(evt);
+            }
+        });
+        jPanel21.add(miscellaneousButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 50, -1, -1));
 
         trainingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         trainingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/training.png"))); // NOI18N
@@ -700,31 +707,17 @@ public class homeFrame extends javax.swing.JFrame {
                 trainingButtonActionPerformed(evt);
             }
         });
-        jPanel22.add(trainingButton);
+        jPanel21.add(trainingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 140, -1, -1));
 
-        daycareButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        daycareButton.setText(" Daycare Services");
-        daycareButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-        daycareButton.setPreferredSize(new java.awt.Dimension(180, 75));
-        daycareButton.addActionListener(new java.awt.event.ActionListener() {
+        addButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        addButton.setText("Add");
+        addButton.setPreferredSize(new java.awt.Dimension(100, 25));
+        addButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                daycareButtonActionPerformed(evt);
+                addButtonActionPerformed(evt);
             }
         });
-        jPanel22.add(daycareButton);
-
-        miscellaneousButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        miscellaneousButton.setText("Miscellaneous Services");
-        miscellaneousButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-        miscellaneousButton.setPreferredSize(new java.awt.Dimension(180, 75));
-        miscellaneousButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                miscellaneousButtonActionPerformed(evt);
-            }
-        });
-        jPanel22.add(miscellaneousButton);
-
-        jPanel21.add(jPanel22);
+        jPanel21.add(addButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 260, -1, -1));
 
         jPanel14.add(jPanel21);
 
@@ -737,108 +730,6 @@ public class homeFrame extends javax.swing.JFrame {
         jPanel23.setBackground(new java.awt.Color(102, 102, 102));
 
         jPanel18.setLayout(new java.awt.CardLayout());
-
-        groomingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
-        groomingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        groomingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
-        groomingServicesPanel.setLayout(new java.awt.GridBagLayout());
-
-        jCheckBox1.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox1.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox1.setText("Full Grooming");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.ipadx = 19;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
-        groomingServicesPanel.add(jCheckBox1, gridBagConstraints);
-
-        jCheckBox2.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox2.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox2.setText("Bath Only");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(24, 30, 0, 0);
-        groomingServicesPanel.add(jCheckBox2, gridBagConstraints);
-
-        jCheckBox3.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox3.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox3.setText("Nail Clipping");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 0, 0, 0);
-        groomingServicesPanel.add(jCheckBox3, gridBagConstraints);
-
-        jCheckBox4.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox4.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox4.setText("Ear Cleaning");
-        jCheckBox4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox4ActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(24, 0, 0, 0);
-        groomingServicesPanel.add(jCheckBox4, gridBagConstraints);
-
-        jCheckBox5.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox5.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox5.setText("Teeth Brushing  ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 8;
-        gridBagConstraints.ipadx = 6;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 39, 0, 0);
-        groomingServicesPanel.add(jCheckBox5, gridBagConstraints);
-
-        jCheckBox6.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox6.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox6.setText("De-shedding Treatment");
-        jCheckBox6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox6ActionPerformed(evt);
-            }
-        });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 9;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(24, 39, 0, 0);
-        groomingServicesPanel.add(jCheckBox6, gridBagConstraints);
-
-        jCheckBox7.setBackground(new java.awt.Color(102, 102, 102));
-        jCheckBox7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox7.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox7.setText("Flea/Tick Treatment");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 12;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 10;
-        gridBagConstraints.ipadx = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 20, 0, 0);
-        groomingServicesPanel.add(jCheckBox7, gridBagConstraints);
-
-        jPanel18.add(groomingServicesPanel, "card2");
 
         petWalkingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         petWalkingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -1061,42 +952,130 @@ public class homeFrame extends javax.swing.JFrame {
 
         jPanel18.add(boardingServicesPanel, "card7");
 
+        groomingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        groomingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        groomingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        groomingServicesPanel.setLayout(new java.awt.GridBagLayout());
+
+        jCheckBox1.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox1.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox1.setText("Full Grooming");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.ipadx = 19;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
+        groomingServicesPanel.add(jCheckBox1, gridBagConstraints);
+
+        jCheckBox2.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox2.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox2.setText("Bath Only");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 30, 0, 0);
+        groomingServicesPanel.add(jCheckBox2, gridBagConstraints);
+
+        jCheckBox3.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox3.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox3.setText("Nail Clipping");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 0, 0, 0);
+        groomingServicesPanel.add(jCheckBox3, gridBagConstraints);
+
+        jCheckBox4.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox4.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox4.setText("Ear Cleaning");
+        jCheckBox4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox4ActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 0, 0, 0);
+        groomingServicesPanel.add(jCheckBox4, gridBagConstraints);
+
+        jCheckBox5.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox5.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox5.setText("Teeth Brushing  ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 8;
+        gridBagConstraints.ipadx = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 39, 0, 0);
+        groomingServicesPanel.add(jCheckBox5, gridBagConstraints);
+
+        jCheckBox6.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox6.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox6.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox6.setText("De-shedding Treatment");
+        jCheckBox6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox6ActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 39, 0, 0);
+        groomingServicesPanel.add(jCheckBox6, gridBagConstraints);
+
+        jCheckBox7.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox7.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox7.setText("Flea/Tick Treatment");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 12;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 10;
+        gridBagConstraints.ipadx = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 20, 0, 0);
+        groomingServicesPanel.add(jCheckBox7, gridBagConstraints);
+
+        jPanel18.add(groomingServicesPanel, "card2");
+
         javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
         jPanel23.setLayout(jPanel23Layout);
         jPanel23Layout.setHorizontalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1198, Short.MAX_VALUE)
+            .addGap(0, 1526, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addGap(0, 463, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 464, Short.MAX_VALUE)))
         );
         jPanel23Layout.setVerticalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 138, Short.MAX_VALUE)
+            .addGap(0, 154, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addGap(0, 8, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 8, Short.MAX_VALUE)))
         );
 
         jPanel19.add(jPanel23);
-
-        jPanel20.setBackground(new java.awt.Color(102, 102, 102));
-
-        addButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        addButton.setText("Add");
-        addButton.setPreferredSize(new java.awt.Dimension(100, 25));
-        addButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addButtonActionPerformed(evt);
-            }
-        });
-        jPanel20.add(addButton);
-
-        jPanel19.add(jPanel20);
 
         jPanel15.add(jPanel19, java.awt.BorderLayout.CENTER);
 
@@ -1263,7 +1242,7 @@ public class homeFrame extends javax.swing.JFrame {
             .addGroup(aboutUsPanelLayout.createSequentialGroup()
                 .addGap(39, 39, 39)
                 .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 282, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 350, Short.MAX_VALUE)
                 .addComponent(jLabel17)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1272,7 +1251,7 @@ public class homeFrame extends javax.swing.JFrame {
                 .addGroup(aboutUsPanelLayout.createSequentialGroup()
                     .addGap(104, 104, 104)
                     .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(329, Short.MAX_VALUE)))
+                    .addContainerGap(393, Short.MAX_VALUE)))
         );
 
         jPanel24.add(aboutUsPanel, "card2");
@@ -1287,7 +1266,7 @@ public class homeFrame extends javax.swing.JFrame {
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 637, Short.MAX_VALUE)
+            .addGap(0, 701, Short.MAX_VALUE)
             .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addComponent(jPanel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1343,15 +1322,6 @@ public class homeFrame extends javax.swing.JFrame {
         recordsButton.setBackground(defaultcolor);
     }//GEN-LAST:event_recordsButtonMouseReleased
 
-    private void servicesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servicesButtonActionPerformed
-        appointmentsPanel.setVisible(false);
-        recordsPanel.setVisible(false);
-        servicesPanel.setVisible(true);
-        settingsPanel.setVisible(false);
-        servicesPanel.revalidate();
-        servicesPanel.repaint();
-    }//GEN-LAST:event_servicesButtonActionPerformed
-
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
         appointmentsPanel.setVisible(false);
         recordsPanel.setVisible(false);
@@ -1359,10 +1329,6 @@ public class homeFrame extends javax.swing.JFrame {
         settingsPanel.setVisible(true);
 
     }//GEN-LAST:event_settingsButtonActionPerformed
-
-    private void classNameTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_classNameTextfieldActionPerformed
-
-    }//GEN-LAST:event_classNameTextfieldActionPerformed
 
     private void petNameTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_petNameTextfieldActionPerformed
 
@@ -1378,7 +1344,122 @@ public class homeFrame extends javax.swing.JFrame {
     }
     
     private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
-        String clientName = classNameTextfield.getText();
+       
+    String clientName = classNameTextfield.getText();
+    String address = addressTextfield.getText();
+    String email = emailTextfield.getText();
+    String contact = contactTextfield.getText();
+    String petName = petNameTextfield.getText();
+    String species = speciesTextField.getText();
+    String breed = breedTextField.getText();
+
+    String selectedServices = jTextArea1.getText();
+List<String> selectedServicesList = new ArrayList<>();
+
+if (selectedServices != null && !selectedServices.trim().isEmpty()) {
+    selectedServicesList = Arrays.asList(selectedServices.split("\\n+"));  
+}
+
+
+    Date schedule = jDateChooser1.getDate();
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+    String sched = sdf.format(schedule);
+
+    String assistant = assistantTextfield.getText();
+    
+    
+    double totalBill = 0.0;
+    String totalBillInput = totalBillTextfield.getText();
+    String totalBillDisplay = ""; 
+
+    try {
+        
+        String cleanInput = totalBillInput.trim().replaceAll("[^\\d\\.]", "");
+        
+        
+        if (cleanInput.isEmpty()) {
+             JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+             return;
+        }
+        
+       
+        totalBill = Double.parseDouble(cleanInput);
+
+        
+        totalBillDisplay = String.format("$%.2f", totalBill);
+        
+    } catch (NumberFormatException ex) {
+        // This will now only catch cases where the cleaned string is an invalid number format (e.g., "1.2.3")
+        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    if (clientName.isEmpty() || petName.isEmpty() || sched == null) {
+        JOptionPane.showMessageDialog(this, "Client Name, Pet Name, Services, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    // ... (Existing code for database connection and preparation)
+
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to the database.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sql = "INSERT INTO appointments (client_name, client_address, client_email, client_contact, "
+                + "pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        pstmt = conn.prepareStatement(sql);
+
+        pstmt.setString(1, clientName);
+        pstmt.setString(2, address);
+        pstmt.setString(3, email);
+        pstmt.setString(4, contact);
+        pstmt.setString(5, petName);
+        pstmt.setString(6, species);
+        pstmt.setString(7, breed);
+        pstmt.setString(8, selectedServices);
+        pstmt.setString(9, sched);
+        pstmt.setString(10, assistant);
+        
+        
+        pstmt.setDouble(11, totalBill); 
+
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            JOptionPane.showMessageDialog(this, "Appointment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Add new row to JTable
+            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+            
+            // --- USE THE FORMATTED STRING (totalBillDisplay) FOR THE JTABLE ---
+            model.addRow(new Object[]{
+                clientName, address, email, contact,
+                petName, species, breed,
+                selectedServices, // Use the service string
+                sched, // Use the formatted date string
+                assistant, 
+                totalBillDisplay // ADD THE CURRENCY FORMATTED STRING HERE
+            });
+            // ... (Rest of the success code)
+            clearFormFields();
+            fetchAppointments(null);
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    } catch (SQLException e) {
+        // ... (Database error handling)
+    } finally {
+        // ... (Database closing)
+    }
+        
+        /*String clientName = classNameTextfield.getText();
         String address = addressTextfield.getText();
         String email = emailTextfield.getText();
         String contact = contactTextfield.getText();
@@ -1465,13 +1546,8 @@ public class homeFrame extends javax.swing.JFrame {
                     JOptionPane.ERROR_MESSAGE);
         } finally {
             jdbcConnection.closeConnection(conn, pstmt, null);
-        }
+        }*/
     }//GEN-LAST:event_addAppointmentButtonActionPerformed
-
-    private void servicesTypesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servicesTypesButtonActionPerformed
-        //servicesSelectionFrame selection = new servicesSelectionFrame();
-       // jPanel8.setVisible(true);
-    }//GEN-LAST:event_servicesTypesButtonActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         if (selectedAppointmentId == -1) {
@@ -1711,10 +1787,6 @@ public class homeFrame extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jTable1MouseClicked
 
-    private void emailTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailTextfieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_emailTextfieldActionPerformed
-
     private void speciesTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_speciesTextFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_speciesTextFieldActionPerformed
@@ -1796,29 +1868,113 @@ public class homeFrame extends javax.swing.JFrame {
         miscellaneousServicesPanel.revalidate();
         miscellaneousServicesPanel.repaint();
     }//GEN-LAST:event_miscellaneousButtonActionPerformed
+// Example pricing map to be defined as a class member
+private final Map<String, Double> servicePrices = createServicePricesMap();
 
-    private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox4ActionPerformed
+private Map<String, Double> createServicePricesMap() {
+    Map<String, Double> prices = new HashMap<>();
+    
+    
+    prices.put("Full Grooming", 65.00); 
+    prices.put("Nail Clipping", 15.00); 
+    prices.put("Teeth Brushing", 10.00); 
+    prices.put("Flea/Tick Treatment", 25.00);
+    prices.put("Bath Only", 35.00);
+    prices.put("Ear Cleaning", 12.00);
+    prices.put("De-shedding Treatment", 40.00);
 
-    private void jCheckBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox6ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox6ActionPerformed
+    
+    prices.put("30 min Walk", 20.00); 
+    prices.put("60 min Walk", 35.00); 
+    prices.put("Daily Park Visit", 45.00); 
 
-    private void jCheckBox8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox8ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox8ActionPerformed
-
-    private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox9ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox9ActionPerformed
-
-    private void jCheckBox21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox21ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCheckBox21ActionPerformed
-
+    
+    
+    return prices;
+}
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-        List<String> selectedServices = new ArrayList<>();
+      List<String> selectedServices = new ArrayList<>();
+    double totalBill = 0.0; // Initialize total bill
+
+    // --- Collect selections (Your existing collection logic) ---
+
+    // Collect selections from Grooming
+    if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
+    if (jCheckBox2.isSelected()) selectedServices.add(jCheckBox2.getText());
+    if (jCheckBox3.isSelected()) selectedServices.add(jCheckBox3.getText());
+    if (jCheckBox4.isSelected()) selectedServices.add(jCheckBox4.getText());
+    if (jCheckBox5.isSelected()) selectedServices.add(jCheckBox5.getText());
+    if (jCheckBox6.isSelected()) selectedServices.add(jCheckBox6.getText());
+    if (jCheckBox7.isSelected()) selectedServices.add(jCheckBox7.getText());
+
+    // Collect selections from Pet Walking
+    if (jCheckBox8.isSelected()) selectedServices.add(jCheckBox8.getText());
+    if (jCheckBox9.isSelected()) selectedServices.add(jCheckBox9.getText());
+    if (jCheckBox10.isSelected()) selectedServices.add(jCheckBox10.getText());
+
+    // Collect selections from Day Care
+    if (jCheckBox11.isSelected()) selectedServices.add(jCheckBox11.getText());
+    if (jCheckBox12.isSelected()) selectedServices.add(jCheckBox12.getText());
+
+    // Collect selections from Training
+    if (jCheckBox13.isSelected()) selectedServices.add(jCheckBox13.getText());
+    if (jCheckBox14.isSelected()) selectedServices.add(jCheckBox14.getText());
+    if (jCheckBox15.isSelected()) selectedServices.add(jCheckBox15.getText());
+    if (jCheckBox16.isSelected()) selectedServices.add(jCheckBox16.getText());
+    if (jCheckBox17.isSelected()) selectedServices.add(jCheckBox17.getText());
+
+    // Collect selections from Miscellaneous
+    if (jCheckBox18.isSelected()) selectedServices.add(jCheckBox18.getText());
+    if (jCheckBox19.isSelected()) selectedServices.add(jCheckBox19.getText());
+    if (jCheckBox20.isSelected()) selectedServices.add(jCheckBox20.getText());
+    if (jCheckBox21.isSelected()) selectedServices.add(jCheckBox21.getText());
+    if (jCheckBox22.isSelected()) selectedServices.add(jCheckBox22.getText());
+
+    // Collect selections from Boarding
+    if (jCheckBox23.isSelected()) selectedServices.add(jCheckBox23.getText());
+    if (jCheckBox24.isSelected()) selectedServices.add(jCheckBox24.getText());
+    if (jCheckBox25.isSelected()) selectedServices.add(jCheckBox25.getText());
+
+    // --- NEW: Calculate Total Bill ---
+    for (String serviceName : selectedServices) {
+        // Look up the price for the service name in the map
+        Double price = servicePrices.get(serviceName);
+        
+        if (price != null) {
+            totalBill += price;
+        } else {
+            // Handle case where a service name might not be in the map (optional)
+            System.err.println("Warning: Price not found for service: " + serviceName);
+        }
+    }
+
+    if (selectedServices.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No services were selected.", "Information", JOptionPane.INFORMATION_MESSAGE);
+        // Reset the total if no services are selected
+        totalBillTextfield.setText("0.00"); 
+    } else {
+        String verticalServices = String.join("\n", selectedServices);
+jTextArea1.setText(verticalServices);
+
+        // Pass selected services back to homeFrame's components
+        /*String joinedServices = String.join(", ", selectedServices);
+        jTextArea1.setText(joinedServices); // Update jTextArea1 with service list*/
+
+        // Update the Total Bill TextField (Assuming it's named totalBillTextField)
+        String formattedTotal = String.format("%.2f", totalBill);
+        totalBillTextfield.setText(formattedTotal); 
+
+        JOptionPane.showMessageDialog(this, "Selected services added: \n" + String.join("\n", selectedServices) + 
+                                          "\n\nTotal Cost: " + formattedTotal, "Success", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+     appointmentsPanel.setVisible(true);
+        recordsPanel.setVisible(false);
+        servicesPanel.setVisible(false);
+        settingsPanel.setVisible(false);
+        servicesPanel.revalidate();
+        servicesPanel.repaint();
+        /* List<String> selectedServices = new ArrayList<>();
 
         // Collect selections from Grooming
         if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
@@ -1867,7 +2023,9 @@ public class homeFrame extends javax.swing.JFrame {
 
             JOptionPane.showMessageDialog(this, "Selected services added: \n" + String.join("\n", selectedServices), "Success", JOptionPane.INFORMATION_MESSAGE);
             
-        }
+        }*/
+        
+        
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -1896,6 +2054,51 @@ public class homeFrame extends javax.swing.JFrame {
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
 
     }//GEN-LAST:event_jTextField1ActionPerformed
+
+    private void servicebuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servicebuttonActionPerformed
+        appointmentsPanel.setVisible(false);
+        recordsPanel.setVisible(false);
+        servicesPanel.setVisible(true);
+        settingsPanel.setVisible(false);
+        servicesPanel.revalidate();
+        servicesPanel.repaint();
+    }//GEN-LAST:event_servicebuttonActionPerformed
+
+    private void totalBillTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalBillTextfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_totalBillTextfieldActionPerformed
+
+    private void jCheckBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox6ActionPerformed
+
+    private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox4ActionPerformed
+
+    private void jCheckBox21ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox21ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox21ActionPerformed
+
+    private void jCheckBox9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox9ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox9ActionPerformed
+
+    private void jCheckBox8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox8ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox8ActionPerformed
+
+    private void emailTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailTextfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_emailTextfieldActionPerformed
+
+    private void classNameTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_classNameTextfieldActionPerformed
+
+    }//GEN-LAST:event_classNameTextfieldActionPerformed
+
+    private void assistantTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_assistantTextfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_assistantTextfieldActionPerformed
 
     
        
@@ -2207,12 +2410,14 @@ public class homeFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel22;
+    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -2229,21 +2434,19 @@ public class homeFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel13;
     private javax.swing.JPanel jPanel14;
     private javax.swing.JPanel jPanel15;
-    private javax.swing.JPanel jPanel17;
+    private javax.swing.JPanel jPanel16;
     private javax.swing.JPanel jPanel18;
     private javax.swing.JPanel jPanel19;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel20;
     private javax.swing.JPanel jPanel21;
-    private javax.swing.JPanel jPanel22;
     private javax.swing.JPanel jPanel23;
     private javax.swing.JPanel jPanel24;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JPopupMenu jPopupMenu1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -2264,9 +2467,8 @@ public class homeFrame extends javax.swing.JFrame {
     private javax.swing.JButton recordsButton;
     private javax.swing.JPanel recordsPanel;
     private javax.swing.JTable recordsTable;
-    private javax.swing.JButton servicesButton;
+    private javax.swing.JButton servicebutton;
     private javax.swing.JPanel servicesPanel;
-    private javax.swing.JButton servicesTypesButton;
     private javax.swing.JButton settingsButton;
     private javax.swing.JPanel settingsPanel;
     private javax.swing.JTextField speciesTextField;
