@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>gui</headerType>
+  <jar>C:\Users\Acer\Desktop\FINAL project\project2-master\dist\petCareServiceSystem.jar</jar>
+  <outfile>C:\Users\Acer\Desktop\FINAL project\project2-master\dist\iPetCare.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>normal</priority>
+  <downloadUrl></downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon>D:\school folder\logo_1.ico</icon>
+  <classPath>
+    <mainClass>petcareservicesystem.PetCareServiceSystem</mainClass>
+    <cp>lib/mysql-connector-j-9.3.0.jar</cp>
+    <cp>lib/jcalendar-1.4.jar</cp>
+    <cp>lib/AbsoluteLayout.jar</cp>
+    <cp>lib/flatlaf-3.6.jar</cp>
+    <cp>lib/miglayout-core-11.4.2.jar</cp>
+    <cp>lib/miglayout-swing-11.4.2.jar</cp>
+    <cp>lib/mysql-connector-j-9.3.0.jar</cp>
+  </classPath>
+  <jre>
+    <path>jdk-20</path>
+    <requiresJdk>false</requiresJdk>
+    <requires64Bit>false</requires64Bit>
+    <minVersion></minVersion>
+    <maxVersion></maxVersion>
+  </jre>
+</launch4jConfig>

@@ -4,12 +4,13 @@
  */
 package petcareservicesystem;
 
-import frames.homeFrame; // Assuming homeFrame is in the 'frames' package
-import com.formdev.flatlaf.FlatLightLaf; // Import the FlatLaf theme you are using
+
+//import com.formdev.flatlaf.FlatLightLaf;
 import frames.logInFrame;
+import frames.homeFrame;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.UIManager; // For fallback L&F
+import javax.swing.UIManager;
 
 public class PetCareServiceSystem {
     
@@ -19,7 +20,7 @@ public class PetCareServiceSystem {
      */
     public static void main(String[] args) {
         
-        try {
+     /*   try {
             FlatLightLaf.setup(); // Ensure this is the first UI-related call
         } catch (Exception ex) {
             // Log the error if FlatLaf setup fails
@@ -39,7 +40,7 @@ public class PetCareServiceSystem {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 
-                new logInFrame().setVisible(true);
+                new homeFrame().setVisible(true);
             }
         });
     }

@@ -3,35 +3,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package frames;
-
 import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import frames.ComboBoxMultiSelection;
-import java.awt.Dimension;
-import javax.swing.JComboBox;
-import frames.ComboBoxMultiSelection;
-import com.formdev.flatlaf.FlatLightLaf;
-import java.awt.CardLayout;
-import java.util.List;
-import java.sql.DriverManager;
 import JDBC.jdbcConnection;
-import java.sql.ResultSetMetaData;
+import java.awt.CardLayout;
 import java.awt.Component;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.awt.Dimension;
+import java.sql.ResultSetMetaData;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Vector; 
+import java.util.ArrayList;
 import javax.swing.table.DefaultTableModel; 
 import javax.swing.event.ListSelectionEvent; 
 import javax.swing.event.ListSelectionListener; 
@@ -43,6 +25,20 @@ import java.util.Map;
 import javax.swing.JCheckBox;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.swing.*;
+import javax.swing.table.*;
+import java.awt.event.*;
+import java.util.Calendar;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Random;
+import javax.swing.RowFilter;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -50,89 +46,469 @@ import javax.swing.event.DocumentListener;
  */
 public class homeFrame extends javax.swing.JFrame {
 
+    private TableRowSorter<TableModel> recordsSorter;
+    private CardLayout cards;
+    private Connection conn; 
+    private List<JButton> buttons = new ArrayList<>();
+    private JButton active;
+    private javax.swing.JTextField txtAppointmentId;
+    private javax.swing.JTextField txtTime;
+    private javax.swing.JComboBox<String> cmbStatus;
     private String currentUserRole;
-    private ComboBoxMultiSelection<String> servicesComboBox;
-    private int selectedAppointmentId = -1; 
+private int selectedAppointmentId = -1;
+private boolean fieldsLoaded = false; // Track if fields are currently loaded
 
-    Color defaultcolor = new Color(0, 0, 0);
-    Color clickedcolor = new Color(102, 102, 102);
+Color defaultcolor = new Color(0, 0, 0);
+    Color clickedcolor = new Color(47, 110, 138);
     Color white = new Color(255, 255, 255);
-
-    DefaultTableModel table = new DefaultTableModel(new Object[]{"Client Name", "Address", "Email", "Contact", "Pet Name", "Species", "Breed", "Service/s", "Schedule", "Assistant", "Total Bill"}, 0);
+    private DefaultTableModel table = new DefaultTableModel(new Object[]{"Client Name", "Address", "Email", "Contact", "Pet Name", "Species", "Breed", "Service/s", "Schedule", "Assistant", "Total Bill", "ID"}, 0);
     int editingRow = -1;
+     
 
+    private void setupServicesColumnRenderer() {
+        recordsTable.getColumnModel().getColumn(6).setCellRenderer(new MultiLineCellRenderer());
+    }
+
+    
     public homeFrame() {
+    initComponents();
+    
+    buttons.add(appointmentsButton);
+        buttons.add(recordsButton);
+        buttons.add(settingsButton);
+        active = appointmentsButton;
+        active = recordsButton;
+        active = settingsButton;
+        
+        setupRecordSearch();
+        setupRecordDoubleClick();
+        setupDateColumnRenderer();
+        setupServicesColumnRenderer();
+        disableDateChooserTyping();
+        disableRecordsTableEditing();
+        
+        txtAppointmentId = new javax.swing.JTextField();
+        txtTime = new javax.swing.JTextField();
+        cmbStatus = new javax.swing.JComboBox<>();
+        
+        cards = (CardLayout) jPanel10.getLayout();
+        recordsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+        recordsTable.setDefaultEditor(Object.class, null);
 
+        JComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"","Billy","Abel","Bob","Caleb","Doris","Eddie"}));
 
-        initComponents();
         this.currentUserRole = "Guest";
         System.out.println("Home frame initialized without a specific role. Defaulting to: " + this.currentUserRole);
-        customizeUIBasedOnRole();
-        fetchAppointments(null);
-        
-        jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                
-                if (!e.getValueIsAdjusting()) {
-                    jTable1MouseClicked();
+
+        switchTab(appointmentsPanel, appointmentsButton);
+
+        TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordsTable.getModel());
+        recordsTable.setRowSorter(sorter);
+
+        jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+            private void search() {
+                String text = jTextField1.getText();
+                if (text.trim().isEmpty()) {
+                    sorter.setRowFilter(null);
+                } else {
+                    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
                 }
             }
-        });
 
-        jTable1.setModel(table);
-        recordsTable.setModel(table);
+            public void insertUpdate(javax.swing.event.DocumentEvent e) { search(); }
+            public void removeUpdate(javax.swing.event.DocumentEvent e) { search(); }
+            public void changedUpdate(javax.swing.event.DocumentEvent e) { search(); }
+        });
+        
+        DefaultTableModel jTable1Model = new DefaultTableModel(new Object[]{"Client Name", "Pet Name", "Species", "Services", "ID"}, 0) {
+    @Override
+    public boolean isCellEditable(int row, int column) {
+        return false;
+    }
+};
+jTable1.setModel(jTable1Model);
+
+// Hide only the ID column (index 4)
+jTable1.getColumnModel().getColumn(4).setMinWidth(0);
+jTable1.getColumnModel().getColumn(4).setMaxWidth(0);
+jTable1.getColumnModel().getColumn(4).setPreferredWidth(0);
+
+// Load all appointments into jTable1
+loadJTable1();
+        
+        DefaultTableModel recordsModel = new DefaultTableModel(
+            new Object[][]{},
+            new String[]{"ID", "Owner","Address","Email", "Number", "Pet Name","Species", "Breed", "Services", "Date", "Assistant", "Total Bill", "Status"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        recordsTable.setModel(recordsModel);
+        loadRecordsTable();
     }
 
     public homeFrame(String userRole) {
-        initComponents();
+    initComponents();
+    
+    txtAppointmentId = new javax.swing.JTextField();
+        txtTime = new javax.swing.JTextField();
+        cmbStatus = new javax.swing.JComboBox<>();
+        
         jTextField1.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                
-                fetchAppointments(jTextField1.getText().trim());
-            }
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        // Just filter, don't fetch
+    }
+    
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        // Just filter, don't fetch
+    }
+    
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        // Just filter, don't fetch
+    }
+});
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-               
-                fetchAppointments(jTextField1.getText().trim());
-            }
+this.currentUserRole = userRole;
+System.out.println("User logged in with role: " + this.currentUserRole);
+customizeUIBasedOnRole();
 
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                
-                fetchAppointments(jTextField1.getText().trim());
-            }
-        });
+// Load all appointments
+loadJTable1();
 
-        this.currentUserRole = userRole;
-        System.out.println("User logged in with role: " + this.currentUserRole);
-        customizeUIBasedOnRole();
-        fetchAppointments(null); 
-        jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+    @Override
+    public void valueChanged(ListSelectionEvent e) {
+        if (!e.getValueIsAdjusting()) {
+            // Selection changed - do nothing, wait for Edit button
+        }
+    }
+});
+
+        loadRecordsTable(); 
+    }
+
+    private void disableRecordsTableEditing() {
+      recordsTable.setDefaultEditor(Object.class, null);
+    }
+
+    private void addRecordsTableDoubleClick() {
+     recordsTable.addMouseListener(new MouseAdapter() {
             @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    jTable1MouseClicked();
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int row = recordsTable.getSelectedRow();
+                    if (row == -1) return;
+                    row = recordsTable.convertRowIndexToModel(row);
+                    String id = recordsTable.getModel().getValueAt(row, 0).toString();
+                    loadAppointmentById(id);
+                    cards.show(jPanel10, "appointmentsPanel");
                 }
             }
         });
     }
+    
+// NEW METHOD: Load all appointments into jTable1
+private void loadJTable1() {
+    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+    jTable1Model.setRowCount(0);
+    
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Failed to connect to database for jTable1.");
+            return;
+        }
+        
+        String sql = "SELECT id, client_name, pet_name, pet_species, selected_services FROM appointments ORDER BY id";
+        pstmt = conn.prepareStatement(sql);
+        rs = pstmt.executeQuery();
+        
+        while (rs.next()) {
+            jTable1Model.addRow(new Object[]{
+                rs.getString("client_name"),  // Client Name (column 0)
+                rs.getString("pet_name"),      // Pet Name (column 1)
+                rs.getString("pet_species"),   // Species (column 2)
+                rs.getString("selected_services"), // Services (column 3)
+                rs.getInt("id")                // ID (column 4 - hidden)
+            });
+        }
+        
+        System.out.println("jTable1 loaded successfully. Row count: " + jTable1Model.getRowCount());
+    } catch (SQLException e) {
+        System.err.println("Error loading jTable1: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        jdbcConnection.closeConnection(conn, pstmt, rs);
+    }
+}
+    private void openAppointmentFromRecords() {
+    int row = recordsTable.getSelectedRow();
+        if (row == -1) return;
+        String Id = recordsTable.getValueAt(row, 0).toString();
+        String petName = recordsTable.getValueAt(row, 1).toString();
+        String ownerName = recordsTable.getValueAt(row, 2).toString();
+        String service = recordsTable.getValueAt(row, 3).toString();
+        String date = recordsTable.getValueAt(row, 4).toString();
+        cards.show(jPanel10, "appointmentsPanel");
+        txtAppointmentId.setText(Id);
+        petNameTextfield.setText(petName);
+        classNameTextfield.setText(ownerName);
+        servicebutton.setText(service);
+        try {
+            Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+            jDateChooser1.setDate(parsedDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadAppointmentById(String id) {
+     try (Connection con = jdbcConnection.getConnection()) {
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM appointments WHERE id = ?");
+            ps.setInt(1, Integer.parseInt(id));
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                txtAppointmentId.setText(rs.getString("id"));
+                jDateChooser1.setDate(rs.getDate("date"));
+                txtTime.setText(rs.getString("time"));
+                cmbStatus.setSelectedItem(rs.getString("status"));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private String selectedServices() {
+    StringBuilder sb = new StringBuilder();
+        if (boardingButton.isSelected()) sb.append("Boarding, ");
+        if (petwalkingButton.isSelected()) sb.append("Petwalking, ");
+        if (miscellaneousButton.isSelected()) sb.append("Miscellanous, ");
+        if (groomingButton.isSelected()) sb.append("Grooming, ");
+        if (daycareButton.isSelected()) sb.append("Daycare, ");
+        if (trainingButton.isSelected()) sb.append("Training, ");
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 2);
+        }
+        return sb.toString();
+    }
+    
+    
+    private String formatServices(List<String> services) {
+    return String.join("\n", services);
+}
+
+    
+    private void showError(Exception e) {
+        JOptionPane.showMessageDialog(this, e.getMessage(), "System Error", JOptionPane.ERROR_MESSAGE);
+    } 
+
+    private JPanel currentPanel;
+
+    private void switchPanel(JPanel target) {
+        if (currentPanel == target) return;
+        jPanel10.removeAll();
+        jPanel10.add(target);
+        jPanel10.revalidate();
+        jPanel10.repaint();
+        currentPanel = target;
+    }
+
+    private void setupRecordSearch() {
+    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
+    recordsSorter = new TableRowSorter<>(model);
+    recordsTable.setRowSorter(recordsSorter);
+
+    jTextField1.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String keyword = jTextField1.getText().trim();
+            if (keyword.isEmpty()) {
+                recordsSorter.setRowFilter(null);
+            } else {
+                recordsSorter.setRowFilter(RowFilter.regexFilter("(?i)" + keyword));
+            }
+        }
+    });
+}
+    
+    
+   private void setupRecordDoubleClick() {
+    recordsTable.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() == 2 && recordsTable.getSelectedRow() != -1) {
+    int viewRow = recordsTable.getSelectedRow();
+    int modelRow = recordsTable.convertRowIndexToModel(viewRow);
+    DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
+
+    // Get ID from recordsTable
+    int id = (int) recordsModel.getValueAt(modelRow, 0);
+    
+    // Switch to appointments panel
+    switchPanel(appointmentsPanel);
+    
+    // Find and select the row in jTable1 with matching ID
+    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+    for (int i = 0; i < jTable1Model.getRowCount(); i++) {
+        int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column in jTable1
+        if (rowId == id) {
+            jTable1.setRowSelectionInterval(i, i);
+            jTable1.scrollRectToVisible(jTable1.getCellRect(i, 0, true));
+            selectedAppointmentId = id;
+            
+            // Load fields immediately for double-click
+            loadFieldsFromDatabase(id);
+            break;
+        }
+    }
+            }
+        }
+    });
+}
+   
+   // NEW METHOD: Load fields from database by ID
+// NEW METHOD: Load fields from database by ID
+private void loadFieldsFromDatabase(int id) {
+    try (Connection con = jdbcConnection.getConnection()) {
+        PreparedStatement ps = con.prepareStatement("SELECT * FROM appointments WHERE id = ?");
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            classNameTextfield.setText(rs.getString("client_name"));
+            addressTextfield.setText(rs.getString("client_address"));
+            emailTextfield.setText(rs.getString("client_email"));
+            contactTextfield.setText(rs.getString("client_contact"));
+            petNameTextfield.setText(rs.getString("pet_name"));
+            speciesTextField.setText(rs.getString("pet_species"));
+            breedTextField.setText(rs.getString("pet_breed"));
+            jTextArea1.setText(rs.getString("selected_services"));
+            totalBillTextfield.setText(rs.getString("total_bill"));
+            
+            // Parse and set date
+            try {
+                Date date = new SimpleDateFormat("MM/dd/yyyy").parse(rs.getString("schedule"));
+                jDateChooser1.setDate(date);
+            } catch (ParseException ex) {
+                ex.printStackTrace();
+                jDateChooser1.setDate(null);
+            }
+            
+            JComboBox.setSelectedItem(rs.getString("assigned_assistant"));
+            
+            // Set flag to indicate fields are loaded
+            fieldsLoaded = true;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error loading appointment: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+   
+    private void setupDateColumnRenderer() {
+    TableColumn dateColumn =
+        recordsTable.getColumnModel().getColumn(4);
+
+    dateColumn.setCellRenderer(new DefaultTableCellRenderer() {
+        @Override
+        protected void setValue(Object value) {
+            if (value instanceof Date) {
+                setText(new SimpleDateFormat(
+                    "yyyy-MM-dd HH:mm:ss").format(value));
+            } else {
+                super.setValue(value);
+            }
+        }
+    });
+    }
+    
+    private void disableDateChooserTyping() {
+    JTextField tf =
+        (JTextField) jDateChooser1.getDateEditor()
+            .getUiComponent();
+    tf.setEditable(false);
+    
+
+    for (JButton btn : buttons) {
+        btn.setBackground(new Color(240,240,240));
+    }
+    active.setBackground(new Color(100,149,237));
+
+    recordsButton.addActionListener(e -> {
+    switchPanel(recordsPanel);
+    //highlightButton(recordsButton);
+    });
+    }
+    
+    
+    private final Color COLOR_ACTIVE = new Color(0, 153, 153);   // Teal/Cyan accent
+    private final Color COLOR_INACTIVE = new Color(51, 51, 51); // Dark grey background
+    private final Color COLOR_TEXT = Color.WHITE;
+
+    private void switchTab(javax.swing.JPanel targetPanel, javax.swing.JButton activeBtn) {
+     appointmentsPanel.setVisible(false);
+        recordsPanel.setVisible(false);
+        settingsPanel.setVisible(false);
+        targetPanel.setVisible(true);
+        javax.swing.JButton[] navButtons = {appointmentsButton, recordsButton, settingsButton};
+        for (javax.swing.JButton btn : navButtons) {
+            btn.setBackground(COLOR_INACTIVE);
+            btn.setForeground(COLOR_TEXT);
+            btn.setOpaque(true);
+            btn.setBorderPainted(false);
+        }
+        activeBtn.setBackground(COLOR_ACTIVE);
+    }
+    
+  private void configureJTable1Columns() {
+      int[] visibleColumns = {0, 4, 5, 7};
+        for (int i = 0; i < jTable1.getColumnModel().getColumnCount(); i++) {
+            boolean keep = false;
+            for (int col : visibleColumns) {
+                if (i == col) {
+                    keep = true;
+                    break;
+                }
+            }
+            if (!keep) {
+                jTable1.getColumnModel().getColumn(i).setMinWidth(0);
+                jTable1.getColumnModel().getColumn(i).setMaxWidth(0);
+                jTable1.getColumnModel().getColumn(i).setPreferredWidth(0);
+            }
+        }
+        jTable1.getColumnModel().getColumn(0).setHeaderValue("Client Name");
+        jTable1.getColumnModel().getColumn(4).setHeaderValue("Pet Name");
+        jTable1.getColumnModel().getColumn(5).setHeaderValue("Species");
+        jTable1.getColumnModel().getColumn(7).setHeaderValue("Services");
+        jTable1.getTableHeader().repaint();
+    }
+
 
     public void addSelectedServices(String services) {
-        
         jTextArea1.setText(services);
-        
         JOptionPane.showMessageDialog(this, "Selected Services: " + services, "Services Added", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void customizeUIBasedOnRole() {
-        if (this.currentUserRole != null) {
+   private void customizeUIBasedOnRole() {
+     if (this.currentUserRole != null) {
             if ("SuperAdmin".equals(this.currentUserRole) || "Admin".equals(this.currentUserRole)) {
                 System.out.println("Enabling Admin/SuperAdmin features.");
             } else if ("Staff".equals(this.currentUserRole)) {
                 System.out.println("Enabling Staff features.");
+            } else if ("Guest".equals(this.currentUserRole)) {
+                System.out.println("Guest mode: Limited features.");
+                jButton3.setEnabled(false);
+                jButton4.setEnabled(false);
+                jButton5.setEnabled(false);
             } else {
                 System.out.println("Unknown role: " + this.currentUserRole);
             }
@@ -141,10 +517,112 @@ public class homeFrame extends javax.swing.JFrame {
         }
     }
 
+class MultiLineCellRenderer extends JTextArea
+        implements TableCellRenderer {
 
-    @SuppressWarnings("unchecked")
+    public MultiLineCellRenderer() {
+        setLineWrap(true);
+        setWrapStyleWord(true);
+        setOpaque(true);
+    }
 
-   
+    @Override
+    public Component getTableCellRendererComponent(
+        JTable table, Object value, boolean isSelected,
+        boolean hasFocus, int row, int column) {
+
+        setText(value == null ? "" : value.toString());
+        setBackground(isSelected
+            ? table.getSelectionBackground()
+            : table.getBackground());
+
+        return this;
+    }
+}
+    
+    public void loadRecordsTable() {
+    loadRecordsTable("");
+}
+
+    private void loadRecordsTable(String filter) {
+     DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
+        recordsModel.setRowCount(0);
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = jdbcConnection.getConnection();
+            if (conn == null) {
+                System.err.println("Failed to connect to database for recordsTable.");
+                return;
+            }
+            System.out.println("Database connection established.");
+            String sql = "SELECT id, client_name AS Owner, client_address AS Address, client_email AS Email, client_contact AS Number, pet_name AS `Pet Name`, pet_species AS Species, pet_breed AS Breed, selected_services AS Services, schedule AS `Date`, assigned_assistant AS Assistant, total_bill AS `Total Bill`, 'Pending' AS Status FROM appointments";
+            if (filter != null && !filter.trim().isEmpty()) {
+                sql += " WHERE client_name LIKE ? OR pet_name LIKE ?";
+            }
+            System.out.println("SQL Query: " + sql);
+            pstmt = conn.prepareStatement(sql);
+            if (filter != null && !filter.trim().isEmpty()) {
+                pstmt.setString(1, "%" + filter + "%");
+                pstmt.setString(2, "%" + filter + "%");
+            }
+            rs = pstmt.executeQuery();
+            if (rs == null) {
+                System.err.println("ResultSet is null. Query execution failed.");
+                return;
+            }
+            while (rs.next()) {
+                String dateStr = rs.getString("Date");
+                recordsModel.addRow(new Object[]{
+                    rs.getInt("id"),
+                    rs.getString("Owner"),
+                    rs.getString("Address"),
+                    rs.getString("Email"),
+                    rs.getString("Number"),
+                    rs.getString("Pet Name"),
+                    rs.getString("Species"),
+                    rs.getString("Breed"),
+                    rs.getString("Services"),
+                    dateStr,
+                    rs.getString("Assistant"),
+                    rs.getString("Total Bill"),
+                    rs.getString("Status")
+                });
+            }
+            System.out.println("Records table loaded successfully. Row count: " + recordsModel.getRowCount());
+        } catch (SQLException e) {
+            System.err.println("Error loading records table: " + e.getMessage());
+            e.printStackTrace();
+        } finally {
+            jdbcConnection.closeConnection(conn, pstmt, rs);
+        }
+        recordsTable.getColumnModel().getColumn(0).setMinWidth(0);
+        recordsTable.getColumnModel().getColumn(0).setMaxWidth(0);
+        recordsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+    }
+
+private void loadAppointmentForEditing(String Id) {
+    try {
+            Connection con = jdbcConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM appointments WHERE id = ?");
+            ps.setString(1, Id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                txtAppointmentId.setText(rs.getString("id"));
+                petNameTextfield.setText(rs.getString("pet_name"));
+                classNameTextfield.setText(rs.getString("client_name"));
+                servicebutton.setText(rs.getString("selected_services"));
+                jDateChooser1.setDate(rs.getDate("schedule"));
+                txtTime.setText(rs.getString("time"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+// Add any other missing methods or the rest of your class here...
+// (e.g., the rest of the generated code from initComponents, variables declaration, etc.)
     
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -161,48 +639,23 @@ public class homeFrame extends javax.swing.JFrame {
         recordsButton = new javax.swing.JButton();
         settingsButton = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
-        appointmentsPanel = new javax.swing.JPanel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        jPanel13 = new javax.swing.JPanel();
-        jPanel7 = new javax.swing.JPanel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        petNameTextfield = new javax.swing.JTextField();
-        speciesTextField = new javax.swing.JTextField();
-        breedTextField = new javax.swing.JTextField();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
-        jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        assistantTextfield = new javax.swing.JTextField();
-        servicebutton = new javax.swing.JButton();
-        jPanel5 = new javax.swing.JPanel();
-        jPanel6 = new javax.swing.JPanel();
-        jLabel22 = new javax.swing.JLabel();
-        totalBillTextfield = new javax.swing.JTextField();
-        jLabel23 = new javax.swing.JLabel();
-        jScrollPane4 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jLabel13 = new javax.swing.JLabel();
-        addAppointmentButton = new javax.swing.JButton();
-        jPanel9 = new javax.swing.JPanel();
-        jPanel16 = new javax.swing.JPanel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        classNameTextfield = new javax.swing.JTextField();
-        jLabel4 = new javax.swing.JLabel();
-        addressTextfield = new javax.swing.JTextField();
-        emailTextfield = new javax.swing.JTextField();
-        jLabel12 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        contactTextfield = new javax.swing.JTextField();
+        recordsPanel = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        recordsTable = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        settingsPanel = new javax.swing.JPanel();
+        aboutPanel = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel24 = new javax.swing.JPanel();
+        jPanel11 = new javax.swing.JPanel();
+        jButton7 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        aboutUsPanel = new javax.swing.JPanel();
+        jLabel14 = new javax.swing.JLabel();
+        jTextArea2 = new javax.swing.JTextArea();
+        jLabel17 = new javax.swing.JLabel();
+        jTextArea3 = new javax.swing.JTextArea();
         servicesPanel = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jPanel12 = new javax.swing.JPanel();
@@ -220,10 +673,6 @@ public class homeFrame extends javax.swing.JFrame {
         jPanel19 = new javax.swing.JPanel();
         jPanel23 = new javax.swing.JPanel();
         jPanel18 = new javax.swing.JPanel();
-        petWalkingServicesPanel = new javax.swing.JPanel();
-        jCheckBox8 = new javax.swing.JCheckBox();
-        jCheckBox9 = new javax.swing.JCheckBox();
-        jCheckBox10 = new javax.swing.JCheckBox();
         dayCareServicesPanel = new javax.swing.JPanel();
         jCheckBox11 = new javax.swing.JCheckBox();
         jCheckBox12 = new javax.swing.JCheckBox();
@@ -251,25 +700,52 @@ public class homeFrame extends javax.swing.JFrame {
         jCheckBox5 = new javax.swing.JCheckBox();
         jCheckBox6 = new javax.swing.JCheckBox();
         jCheckBox7 = new javax.swing.JCheckBox();
-        recordsPanel = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        recordsTable = new javax.swing.JTable();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        settingsPanel = new javax.swing.JPanel();
-        jPanel11 = new javax.swing.JPanel();
-        jButton7 = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        aboutPanel = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        jPanel24 = new javax.swing.JPanel();
-        aboutUsPanel = new javax.swing.JPanel();
-        jLabel14 = new javax.swing.JLabel();
-        jScrollPane5 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
-        jLabel17 = new javax.swing.JLabel();
-        jScrollPane6 = new javax.swing.JScrollPane();
-        jTextArea3 = new javax.swing.JTextArea();
+        petWalkingServicesPanel = new javax.swing.JPanel();
+        jCheckBox8 = new javax.swing.JCheckBox();
+        jCheckBox9 = new javax.swing.JCheckBox();
+        jCheckBox10 = new javax.swing.JCheckBox();
+        appointmentsPanel = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jPanel13 = new javax.swing.JPanel();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        petNameTextfield = new javax.swing.JTextField();
+        speciesTextField = new javax.swing.JTextField();
+        breedTextField = new javax.swing.JTextField();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        servicebutton = new javax.swing.JButton();
+        jDateChooser1 = new com.toedter.calendar.JDateChooser();
+        JComboBox = new javax.swing.JComboBox<>();
+        jPanel5 = new javax.swing.JPanel();
+        jPanel6 = new javax.swing.JPanel();
+        jLabel22 = new javax.swing.JLabel();
+        totalBillTextfield = new javax.swing.JTextField();
+        jLabel23 = new javax.swing.JLabel();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        jLabel13 = new javax.swing.JLabel();
+        addAppointmentButton = new javax.swing.JButton();
+        jPanel9 = new javax.swing.JPanel();
+        jPanel16 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        classNameTextfield = new javax.swing.JTextField();
+        jLabel4 = new javax.swing.JLabel();
+        addressTextfield = new javax.swing.JTextField();
+        emailTextfield = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        contactTextfield = new javax.swing.JTextField();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -279,24 +755,38 @@ public class homeFrame extends javax.swing.JFrame {
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setMinimumSize(new java.awt.Dimension(2000, 1000));
+        setMaximumSize(new java.awt.Dimension(1300, 800));
+        setMinimumSize(new java.awt.Dimension(1000, 700));
+        setPreferredSize(new java.awt.Dimension(1400, 900));
+        setResizable(false);
 
-        jPanel1.setMinimumSize(new java.awt.Dimension(1200, 700));
-        jPanel1.setPreferredSize(new java.awt.Dimension(2000, 1000));
+        jPanel1.setEnabled(false);
+        jPanel1.setMaximumSize(new java.awt.Dimension(1300, 700));
+        jPanel1.setMinimumSize(new java.awt.Dimension(1300, 700));
+        jPanel1.setPreferredSize(new java.awt.Dimension(1300, 700));
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         jPanel2.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel2.setMaximumSize(new java.awt.Dimension(2000, 1000));
+        jPanel2.setMinimumSize(new java.awt.Dimension(2000, 1000));
+        jPanel2.setPreferredSize(new java.awt.Dimension(1450, 73));
+        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/Green Modern Veterinary Clinic Logo.png"))); // NOI18N
         jLabel11.setPreferredSize(new java.awt.Dimension(260, 53));
-        jPanel2.add(jLabel11);
+        jPanel2.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 10, -1, -1));
 
         appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
+        appointmentsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         appointmentsButton.setForeground(new java.awt.Color(255, 255, 255));
         appointmentsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/appointments.png"))); // NOI18N
         appointmentsButton.setText("Appointments");
         appointmentsButton.setBorder(null);
+        appointmentsButton.setSelected(true);
         appointmentsButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                appointmentsButtonMouseEntered(evt);
+            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 appointmentsButtonMousePressed(evt);
             }
@@ -309,14 +799,19 @@ public class homeFrame extends javax.swing.JFrame {
                 appointmentsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(appointmentsButton);
+        jPanel2.add(appointmentsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(980, 20, -1, -1));
 
         recordsButton.setBackground(new java.awt.Color(0, 0, 0));
+        recordsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         recordsButton.setForeground(new java.awt.Color(255, 255, 255));
         recordsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/records.png"))); // NOI18N
         recordsButton.setText("Records");
         recordsButton.setBorder(null);
+        recordsButton.setSelected(true);
         recordsButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                recordsButtonMouseEntered(evt);
+            }
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 recordsButtonMousePressed(evt);
             }
@@ -329,288 +824,267 @@ public class homeFrame extends javax.swing.JFrame {
                 recordsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(recordsButton);
+        jPanel2.add(recordsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1130, 20, -1, -1));
 
         settingsButton.setBackground(new java.awt.Color(0, 0, 0));
+        settingsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         settingsButton.setForeground(new java.awt.Color(255, 255, 255));
         settingsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/settings.png"))); // NOI18N
         settingsButton.setText("Settings");
         settingsButton.setBorder(null);
+        settingsButton.setSelected(true);
+        settingsButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                settingsButtonMouseEntered(evt);
+            }
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                settingsButtonMousePressed(evt);
+            }
+        });
         settingsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 settingsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(settingsButton);
+        jPanel2.add(settingsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1240, 20, -1, -1));
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
-        jPanel10.setPreferredSize(new java.awt.Dimension(2000, 1000));
+        jPanel10.setMaximumSize(new java.awt.Dimension(1300, 700));
+        jPanel10.setMinimumSize(new java.awt.Dimension(1300, 700));
+        jPanel10.setPreferredSize(new java.awt.Dimension(1300, 700));
         jPanel10.setLayout(new java.awt.CardLayout());
 
-        appointmentsPanel.setBackground(new java.awt.Color(51, 51, 51));
-        appointmentsPanel.setPreferredSize(new java.awt.Dimension(2000, 615));
-        appointmentsPanel.setRequestFocusEnabled(false);
-        appointmentsPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        recordsPanel.setBackground(new java.awt.Color(241, 239, 236));
+        recordsPanel.setMaximumSize(new java.awt.Dimension(1400, 700));
+        recordsPanel.setPreferredSize(new java.awt.Dimension(1450, 700));
 
-        jTable1.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jTable1.setForeground(new java.awt.Color(0, 0, 0));
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        recordsTable.setAutoCreateRowSorter(true);
+        recordsTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Client Name", "Address", "Email", "Contact", "Pet Name", "Species", "Breed", "Service/s", "Schedule", "Assistant", "Total Bill", "ID" // Added Address and ID
+                "Owner", "Address", "Email", "Number", "Pet Name", "Species", "Breed", "Services", "Date", "Assistant", "Total Bill"
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false
             };
+
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
-        // Hide the ID column from view (optional, but good for internal IDs)
-        jTable1.getColumnModel().getColumn(11).setMinWidth(0);
-        jTable1.getColumnModel().getColumn(11).setMaxWidth(0);
-        jTable1.getColumnModel().getColumn(11).setWidth(0);
-        jTable1.setOpaque(false);
-        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+        recordsTable.setMaximumSize(new java.awt.Dimension(700, 500));
+        recordsTable.setMinimumSize(new java.awt.Dimension(700, 500));
+        recordsTable.setPreferredSize(new java.awt.Dimension(400, 500));
+        recordsTable.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTable1MouseClicked(evt);
+                recordsTableMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                recordsTableMouseEntered(evt);
             }
         });
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane2.setViewportView(recordsTable);
 
-        appointmentsPanel.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 390, 1490, 280));
+        jLabel1.setText("Search:");
 
-        jButton3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jButton3.setText("Delete");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        jTextField1.setPreferredSize(new java.awt.Dimension(64, 24));
+        jTextField1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextField1MouseClicked(evt);
+            }
+        });
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jTextField1ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton3, new org.netbeans.lib.awtextra.AbsoluteConstraints(750, 690, 111, -1));
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField1KeyReleased(evt);
+            }
+        });
 
-        jButton4.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jButton4.setText("Update");
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
+        javax.swing.GroupLayout recordsPanelLayout = new javax.swing.GroupLayout(recordsPanel);
+        recordsPanel.setLayout(recordsPanelLayout);
+        recordsPanelLayout.setHorizontalGroup(
+            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(recordsPanelLayout.createSequentialGroup()
+                        .addGap(43, 43, 43)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(recordsPanelLayout.createSequentialGroup()
+                        .addGap(35, 35, 35)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(648, 648, 648))
+        );
+        recordsPanelLayout.setVerticalGroup(
+            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(89, Short.MAX_VALUE))
+        );
+
+        jPanel10.add(recordsPanel, "card4");
+
+        settingsPanel.setPreferredSize(new java.awt.Dimension(1400, 969));
+
+        jPanel3.setBackground(new java.awt.Color(204, 204, 204));
+
+        jPanel24.setLayout(new java.awt.CardLayout());
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 1371, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jPanel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 947, Short.MAX_VALUE)
+            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jPanel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout aboutPanelLayout = new javax.swing.GroupLayout(aboutPanel);
+        aboutPanel.setLayout(aboutPanelLayout);
+        aboutPanelLayout.setHorizontalGroup(
+            aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+        aboutPanelLayout.setVerticalGroup(
+            aboutPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+        );
+
+        jPanel11.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel11.setPreferredSize(new java.awt.Dimension(130, 642));
+
+        jButton7.setBackground(new java.awt.Color(0, 0, 0));
+        jButton7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jButton7.setForeground(new java.awt.Color(255, 255, 255));
+        jButton7.setText("About Us");
+        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102)));
+        jButton7.setPreferredSize(new java.awt.Dimension(130, 100));
+        jButton7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
+                jButton7ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 690, 110, -1));
 
-        jButton5.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jButton5.setText("Edit");
-        jButton5.addActionListener(new java.awt.event.ActionListener() {
+        jButton1.setBackground(new java.awt.Color(0, 0, 0));
+        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jButton1.setForeground(new java.awt.Color(255, 255, 255));
+        jButton1.setText("Log out");
+        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 153, 153)));
+        jButton1.setPreferredSize(new java.awt.Dimension(130, 100));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton5ActionPerformed(evt);
+                jButton1ActionPerformed(evt);
             }
         });
-        appointmentsPanel.add(jButton5, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 690, 110, -1));
 
-        jButton6.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jButton6.setText("Print Receipt");
-        jButton6.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton6ActionPerformed(evt);
-            }
-        });
-        appointmentsPanel.add(jButton6, new org.netbeans.lib.awtextra.AbsoluteConstraints(880, 690, -1, -1));
+        javax.swing.GroupLayout jPanel11Layout = new javax.swing.GroupLayout(jPanel11);
+        jPanel11.setLayout(jPanel11Layout);
+        jPanel11Layout.setHorizontalGroup(
+            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel11Layout.createSequentialGroup()
+                .addGap(102, 102, 102)
+                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(117, Short.MAX_VALUE))
+        );
+        jPanel11Layout.setVerticalGroup(
+            jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel11Layout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(52, 52, 52)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
-        jPanel13.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel13.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        aboutUsPanel.setBackground(new java.awt.Color(102, 102, 102));
+        aboutUsPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel7.setBackground(new java.awt.Color(230, 230, 230));
-        jPanel7.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        jLabel14.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
+        jLabel14.setText("MISSION");
+        aboutUsPanel.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 40, 162, -1));
 
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel7.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel7.setText("PET INFORMATION");
-        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(230, 0, 250, 70));
+        jTextArea2.setEditable(false);
+        jTextArea2.setBackground(new java.awt.Color(153, 153, 153));
+        jTextArea2.setColumns(20);
+        jTextArea2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jTextArea2.setRows(5);
+        jTextArea2.setText("Our vision is to be the most reliable and innovative digital pet care solution,\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\nempowering pet owners and professionals through smart tools, seamless experiences, and a shared love for animals.\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care.  \nWe strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\n\n");
+        aboutUsPanel.add(jTextArea2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 290, -1, 140));
 
-        jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel8.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel8.setText("Pet Name:");
-        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 80, 20));
+        jLabel17.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
+        jLabel17.setText("VISION");
+        aboutUsPanel.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(42, 235, 162, -1));
 
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel9.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel9.setText("Species:");
-        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 220, 70, -1));
+        jTextArea3.setBackground(new java.awt.Color(153, 153, 153));
+        jTextArea3.setColumns(20);
+        jTextArea3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jTextArea3.setRows(5);
+        jTextArea3.setText("At iPETCARE, our mission is to deliver compassionate,  convenient, and \nhigh-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling \nappointments to tracking medical records.");
+        aboutUsPanel.add(jTextArea3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 730, -1));
 
-        jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel10.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel10.setText("Breed:");
-        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 160, 60, -1));
+        javax.swing.GroupLayout settingsPanelLayout = new javax.swing.GroupLayout(settingsPanel);
+        settingsPanel.setLayout(settingsPanelLayout);
+        settingsPanelLayout.setHorizontalGroup(
+            settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(settingsPanelLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, 349, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(aboutUsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 1371, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(66, 66, 66)
+                .addComponent(aboutPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+        );
+        settingsPanelLayout.setVerticalGroup(
+            settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(settingsPanelLayout.createSequentialGroup()
+                .addComponent(aboutPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 22, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, settingsPanelLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(aboutUsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 957, Short.MAX_VALUE)
+                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, 957, Short.MAX_VALUE))
+                .addContainerGap())
+        );
 
-        petNameTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                petNameTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel7.add(petNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 80, 140, 30));
-
-        speciesTextField.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                speciesTextFieldActionPerformed(evt);
-            }
-        });
-        jPanel7.add(speciesTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 220, 140, 30));
-        jPanel7.add(breedTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 149, 140, 30));
-        jPanel7.add(jDateChooser1, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 149, 140, 30));
-
-        jLabel15.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel15.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel15.setText("Schedule:");
-        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 150, -1, 20));
-
-        jLabel16.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel16.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel16.setText("Assign Assistant:");
-        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(330, 90, -1, -1));
-
-        assistantTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                assistantTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel7.add(assistantTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 80, 140, 30));
-
-        servicebutton.setText("Select Service");
-        servicebutton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                servicebuttonActionPerformed(evt);
-            }
-        });
-        jPanel7.add(servicebutton, new org.netbeans.lib.awtextra.AbsoluteConstraints(440, 220, 140, 30));
-
-        jPanel13.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 660, 350));
-
-        jScrollPane3.setViewportView(jPanel13);
-
-        appointmentsPanel.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 10, 680, 370));
-
-        jPanel5.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jPanel6.setBackground(new java.awt.Color(204, 204, 255));
-        jPanel6.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel22.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel22.setText("TOTAL BILL:");
-        jPanel6.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 300, 110, 30));
-
-        totalBillTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                totalBillTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 300, 140, 30));
-
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel23.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel23.setText("₱");
-        jPanel6.add(jLabel23, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 300, 30, 30));
-
-        jTextArea1.setEditable(false);
-        jTextArea1.setBackground(new java.awt.Color(204, 204, 204));
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane4.setViewportView(jTextArea1);
-
-        jPanel6.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 50, 450, 240));
-
-        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel13.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel13.setText("SELECTED SERVICES");
-        jPanel6.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, 240, -1));
-
-        addAppointmentButton.setBackground(new java.awt.Color(47, 110, 138));
-        addAppointmentButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        addAppointmentButton.setText("Add Appointment");
-        addAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addAppointmentButtonActionPerformed(evt);
-            }
-        });
-        jPanel6.add(addAppointmentButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(300, 300, 140, 30));
-
-        jPanel5.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 470, 350));
-
-        appointmentsPanel.add(jPanel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(1020, 10, 490, 370));
-
-        jPanel9.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel9.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jPanel16.setBackground(new java.awt.Color(230, 230, 230));
-        jPanel16.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel2.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("CLIENT INFORMATION");
-        jPanel16.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 20, 240, -1));
-
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel3.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel3.setText("Client Name:");
-        jPanel16.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 80, -1, 30));
-
-        classNameTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                classNameTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel16.add(classNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 80, 140, 30));
-
-        jLabel4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel4.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel4.setText("Address:");
-        jPanel16.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 130, 50, 30));
-        jPanel16.add(addressTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 130, 140, 30));
-
-        emailTextfield.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                emailTextfieldActionPerformed(evt);
-            }
-        });
-        jPanel16.add(emailTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 190, 140, 30));
-
-        jLabel12.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel12.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel12.setText("Email:");
-        jPanel16.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 200, 40, -1));
-
-        jLabel6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel6.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel6.setText("Contact:");
-        jPanel16.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 260, 50, -1));
-        jPanel16.add(contactTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 250, 140, 30));
-
-        jPanel9.add(jPanel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 280, 350));
-
-        appointmentsPanel.add(jPanel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(710, 10, 300, 370));
-
-        jPanel10.add(appointmentsPanel, "card3");
+        jPanel10.add(settingsPanel, "card6");
 
         servicesPanel.setBackground(new java.awt.Color(255, 255, 204));
+        servicesPanel.setPreferredSize(new java.awt.Dimension(1400, 450));
         servicesPanel.setLayout(new java.awt.BorderLayout());
 
         jPanel8.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         jPanel8.setEnabled(false);
-        jPanel8.setPreferredSize(new java.awt.Dimension(700, 450));
+        jPanel8.setPreferredSize(new java.awt.Dimension(500, 400));
         jPanel8.setLayout(new java.awt.BorderLayout());
 
         jPanel12.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel12.setPreferredSize(new java.awt.Dimension(1400, 82));
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel5.setForeground(new java.awt.Color(255, 255, 255));
@@ -621,7 +1095,10 @@ public class homeFrame extends javax.swing.JFrame {
         jPanel12.setLayout(jPanel12Layout);
         jPanel12Layout.setHorizontalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1526, Short.MAX_VALUE)
+            .addGroup(jPanel12Layout.createSequentialGroup()
+                .addGap(15, 15, 15)
+                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 1300, Short.MAX_VALUE)
+                .addGap(29, 29, 29))
         );
         jPanel12Layout.setVerticalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -636,11 +1113,11 @@ public class homeFrame extends javax.swing.JFrame {
         jPanel14.setLayout(new java.awt.GridLayout(2, 0, 5, 0));
 
         jPanel21.setBackground(new java.awt.Color(102, 102, 102));
-        jPanel21.setPreferredSize(new java.awt.Dimension(672, 75));
+        jPanel21.setPreferredSize(new java.awt.Dimension(1400, 75));
         jPanel21.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         groomingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        groomingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/grooming.png"))); // NOI18N
+        groomingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/groomss.png"))); // NOI18N
         groomingButton.setText("Grooming Services");
         groomingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         groomingButton.setPreferredSize(new java.awt.Dimension(180, 75));
@@ -649,19 +1126,20 @@ public class homeFrame extends javax.swing.JFrame {
                 groomingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(groomingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 140, -1, -1));
+        jPanel21.add(groomingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 130, -1, -1));
 
         boardingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         boardingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/boarding.png"))); // NOI18N
         boardingButton.setText("Boarding Services");
         boardingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        boardingButton.setOpaque(true);
         boardingButton.setPreferredSize(new java.awt.Dimension(180, 75));
         boardingButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 boardingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(boardingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(490, 50, -1, -1));
+        jPanel21.add(boardingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(360, 30, -1, -1));
 
         petwalkingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         petwalkingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/petWalking.png"))); // NOI18N
@@ -673,9 +1151,10 @@ public class homeFrame extends javax.swing.JFrame {
                 petwalkingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(petwalkingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 50, -1, -1));
+        jPanel21.add(petwalkingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 30, -1, -1));
 
         daycareButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        daycareButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/grooming.png"))); // NOI18N
         daycareButton.setText(" Daycare Services");
         daycareButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         daycareButton.setPreferredSize(new java.awt.Dimension(180, 75));
@@ -684,9 +1163,10 @@ public class homeFrame extends javax.swing.JFrame {
                 daycareButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(daycareButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(690, 140, -1, -1));
+        jPanel21.add(daycareButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 130, -1, -1));
 
         miscellaneousButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        miscellaneousButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/daycaree.png"))); // NOI18N
         miscellaneousButton.setText("Miscellaneous Services");
         miscellaneousButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
         miscellaneousButton.setPreferredSize(new java.awt.Dimension(180, 75));
@@ -695,7 +1175,7 @@ public class homeFrame extends javax.swing.JFrame {
                 miscellaneousButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(miscellaneousButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 50, -1, -1));
+        jPanel21.add(miscellaneousButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 30, 210, -1));
 
         trainingButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         trainingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/training.png"))); // NOI18N
@@ -707,7 +1187,7 @@ public class homeFrame extends javax.swing.JFrame {
                 trainingButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(trainingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(890, 140, -1, -1));
+        jPanel21.add(trainingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 130, 210, -1));
 
         addButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         addButton.setText("Add");
@@ -717,90 +1197,54 @@ public class homeFrame extends javax.swing.JFrame {
                 addButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(addButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(720, 260, -1, -1));
+        jPanel21.add(addButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 250, -1, -1));
 
         jPanel14.add(jPanel21);
 
         jPanel15.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel15.setPreferredSize(new java.awt.Dimension(1400, 334));
         jPanel15.setLayout(new java.awt.BorderLayout());
 
         jPanel19.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel19.setPreferredSize(new java.awt.Dimension(1400, 334));
         jPanel19.setLayout(new java.awt.GridLayout(2, 0));
 
         jPanel23.setBackground(new java.awt.Color(102, 102, 102));
+        jPanel23.setPreferredSize(new java.awt.Dimension(1400, 167));
 
         jPanel18.setLayout(new java.awt.CardLayout());
-
-        petWalkingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
-        petWalkingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        petWalkingServicesPanel.setFocusable(false);
-        petWalkingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
-        petWalkingServicesPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 60));
-
-        jCheckBox8.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox8.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox8.setText("30-Minute Walk");
-        jCheckBox8.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox8ActionPerformed(evt);
-            }
-        });
-        petWalkingServicesPanel.add(jCheckBox8);
-
-        jCheckBox9.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox9.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox9.setText("1-Hour Walk");
-        jCheckBox9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCheckBox9ActionPerformed(evt);
-            }
-        });
-        petWalkingServicesPanel.add(jCheckBox9);
-
-        jCheckBox10.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox10.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox10.setText("Daily Walk Package");
-        petWalkingServicesPanel.add(jCheckBox10);
-
-        jPanel18.add(petWalkingServicesPanel, "card3");
 
         dayCareServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         dayCareServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         dayCareServicesPanel.setFocusable(false);
-        dayCareServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        dayCareServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         dayCareServicesPanel.setLayout(new java.awt.GridBagLayout());
 
+        jCheckBox11.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox11.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox11.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox11.setText("Pet Sitting (In-home care)  ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.ipadx = 16;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 40, 0, 0);
-        dayCareServicesPanel.add(jCheckBox11, gridBagConstraints);
+        jCheckBox11.setText("Pet Sitting (In-home care)");
+        jCheckBox11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox11ActionPerformed(evt);
+            }
+        });
+        dayCareServicesPanel.add(jCheckBox11, new java.awt.GridBagConstraints());
 
+        jCheckBox12.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox12.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox12.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox12.setText("Feeding & Medication Management");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 5;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 7;
-        gridBagConstraints.ipadx = 28;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(20, 20, 0, 60);
-        dayCareServicesPanel.add(jCheckBox12, gridBagConstraints);
+        dayCareServicesPanel.add(jCheckBox12, new java.awt.GridBagConstraints());
 
         jPanel18.add(dayCareServicesPanel, "card4");
 
         trainingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         trainingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        trainingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        trainingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         trainingServicesPanel.setLayout(new java.awt.GridBagLayout());
 
+        jCheckBox13.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox13.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox13.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox13.setText("Basic Obedience Training");
@@ -813,9 +1257,15 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox13, gridBagConstraints);
 
+        jCheckBox14.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox14.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox14.setText("Potty Training");
+        jCheckBox14.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox14ActionPerformed(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -824,6 +1274,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox14, gridBagConstraints);
 
+        jCheckBox15.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox15.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox15.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox15.setText("Behavioral Correction");
@@ -836,6 +1287,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox15, gridBagConstraints);
 
+        jCheckBox16.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox16.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox16.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox16.setText("Puppy Socialization");
@@ -848,6 +1300,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox16, gridBagConstraints);
 
+        jCheckBox17.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox17.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox17.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox17.setText("Trick Training");
@@ -864,9 +1317,10 @@ public class homeFrame extends javax.swing.JFrame {
         miscellaneousServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         miscellaneousServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         miscellaneousServicesPanel.setFocusable(false);
-        miscellaneousServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        miscellaneousServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         miscellaneousServicesPanel.setLayout(new java.awt.GridBagLayout());
 
+        jCheckBox18.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox18.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox18.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox18.setText("Pet Photography Session");
@@ -878,6 +1332,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox18, gridBagConstraints);
 
+        jCheckBox19.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox19.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox19.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox19.setText("Pet Birthday Celebration");
@@ -888,6 +1343,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox19, gridBagConstraints);
 
+        jCheckBox20.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox20.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox20.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox20.setText("Pet Massage or Spa");
@@ -900,6 +1356,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox20, gridBagConstraints);
 
+        jCheckBox21.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox21.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox21.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox21.setText("Pet Taxi (Pickup & Drop-off service)");
@@ -916,6 +1373,7 @@ public class homeFrame extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox21, gridBagConstraints);
 
+        jCheckBox22.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox22.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox22.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox22.setText("Pet Nutrition Consultation");
@@ -932,19 +1390,22 @@ public class homeFrame extends javax.swing.JFrame {
         boardingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         boardingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         boardingServicesPanel.setFocusable(false);
-        boardingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        boardingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         boardingServicesPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 60));
 
+        jCheckBox23.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox23.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox23.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox23.setText("Full-Day Boarding");
         boardingServicesPanel.add(jCheckBox23);
 
+        jCheckBox24.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox24.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox24.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox24.setText("Half-Day Boarding");
         boardingServicesPanel.add(jCheckBox24);
 
+        jCheckBox25.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox25.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox25.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox25.setText("Overnight Stay");
@@ -954,7 +1415,7 @@ public class homeFrame extends javax.swing.JFrame {
 
         groomingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
         groomingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
-        groomingServicesPanel.setPreferredSize(new java.awt.Dimension(560, 170));
+        groomingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         groomingServicesPanel.setLayout(new java.awt.GridBagLayout());
 
         jCheckBox1.setBackground(new java.awt.Color(102, 102, 102));
@@ -1012,7 +1473,7 @@ public class homeFrame extends javax.swing.JFrame {
         jCheckBox5.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox5.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jCheckBox5.setForeground(new java.awt.Color(255, 255, 255));
-        jCheckBox5.setText("Teeth Brushing  ");
+        jCheckBox5.setText("Teeth Brushing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 0;
@@ -1054,25 +1515,61 @@ public class homeFrame extends javax.swing.JFrame {
 
         jPanel18.add(groomingServicesPanel, "card2");
 
+        petWalkingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        petWalkingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        petWalkingServicesPanel.setFocusable(false);
+        petWalkingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
+        petWalkingServicesPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 60));
+
+        jCheckBox8.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox8.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox8.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox8.setText("30-Minute Walk");
+        jCheckBox8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox8ActionPerformed(evt);
+            }
+        });
+        petWalkingServicesPanel.add(jCheckBox8);
+
+        jCheckBox9.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox9.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox9.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox9.setText("1-Hour Walk");
+        jCheckBox9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox9ActionPerformed(evt);
+            }
+        });
+        petWalkingServicesPanel.add(jCheckBox9);
+
+        jCheckBox10.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox10.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox10.setForeground(new java.awt.Color(255, 255, 255));
+        jCheckBox10.setText("Daily Walk Package");
+        petWalkingServicesPanel.add(jCheckBox10);
+
+        jPanel18.add(petWalkingServicesPanel, "card3");
+
         javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
         jPanel23.setLayout(jPanel23Layout);
         jPanel23Layout.setHorizontalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1526, Short.MAX_VALUE)
+            .addGap(0, 1344, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 463, Short.MAX_VALUE)
+                    .addGap(0, 373, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 464, Short.MAX_VALUE)))
+                    .addGap(0, 372, Short.MAX_VALUE)))
         );
         jPanel23Layout.setVerticalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 154, Short.MAX_VALUE)
+            .addGap(0, 164, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 8, Short.MAX_VALUE)
+                    .addGap(0, 13, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 8, Short.MAX_VALUE)))
+                    .addGap(0, 13, Short.MAX_VALUE)))
         );
 
         jPanel19.add(jPanel23);
@@ -1087,195 +1584,331 @@ public class homeFrame extends javax.swing.JFrame {
 
         jPanel10.add(servicesPanel, "card5");
 
-        recordsPanel.setBackground(new java.awt.Color(241, 239, 236));
-        recordsPanel.setLayout(new java.awt.GridBagLayout());
+        appointmentsPanel.setBackground(new java.awt.Color(153, 153, 153));
+        appointmentsPanel.setFocusable(false);
+        appointmentsPanel.setMaximumSize(new java.awt.Dimension(1300, 700));
+        appointmentsPanel.setMinimumSize(new java.awt.Dimension(1300, 660));
+        appointmentsPanel.setPreferredSize(new java.awt.Dimension(1400, 500));
+        appointmentsPanel.setRequestFocusEnabled(false);
 
-        recordsTable.setAutoCreateRowSorter(true);
-        recordsTable.setModel(new javax.swing.table.DefaultTableModel(
+        jTable1.setFont(new java.awt.Font("Dialog", 0, 11)); // NOI18N
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Owner", "Address", "Email", "Number", "Pet Name", "Species", "Breed", "Services", "Date", "Assistant", "Total Bill"
+                "Client Name","Address", "Email","Contact", "Pet Name", "Species", "Breed", "Service/s",  "Schedule", "Assistant", "Total Bill",   "ID" // Added Address and ID
             }
         ) {
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false
+                false, false, false, false, false, false, false, false, false, false, false, false
             };
-
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
             }
         });
-        jScrollPane2.setViewportView(recordsTable);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.ipadx = 1126;
-        gridBagConstraints.ipady = 530;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(18, 33, 31, 31);
-        recordsPanel.add(jScrollPane2, gridBagConstraints);
-
-        jLabel1.setText("Search:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(19, 20, 0, 0);
-        recordsPanel.add(jLabel1, gridBagConstraints);
-
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+        // Hide the ID column from view (optional, but good for internal IDs)
+        jTable1.getColumnModel().getColumn(11).setMinWidth(0);
+        jTable1.getColumnModel().getColumn(11).setMaxWidth(0);
+        jTable1.getColumnModel().getColumn(11).setWidth(0);
+        jTable1.setOpaque(false);
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
             }
         });
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.ipadx = 177;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(16, 6, 0, 0);
-        recordsPanel.add(jTextField1, gridBagConstraints);
+        jScrollPane1.setViewportView(jTable1);
 
-        jPanel10.add(recordsPanel, "card4");
-
-        settingsPanel.setLayout(new java.awt.BorderLayout());
-
-        jPanel11.setBackground(new java.awt.Color(0, 0, 0));
-        jPanel11.setPreferredSize(new java.awt.Dimension(130, 642));
-        jPanel11.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 30));
-
-        jButton7.setBackground(new java.awt.Color(0, 0, 0));
-        jButton7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton7.setForeground(new java.awt.Color(255, 255, 255));
-        jButton7.setText("About Us");
-        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102)));
-        jButton7.setPreferredSize(new java.awt.Dimension(130, 100));
-        jButton7.addActionListener(new java.awt.event.ActionListener() {
+        jButton3.setBackground(new java.awt.Color(204, 204, 204));
+        jButton3.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/delete.png"))); // NOI18N
+        jButton3.setText("Delete");
+        jButton3.setToolTipText("");
+        jButton3.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton3.setIconTextGap(0);
+        jButton3.setMargin(new java.awt.Insets(5, 0, 5, 0));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton7ActionPerformed(evt);
+                jButton3ActionPerformed(evt);
             }
         });
-        jPanel11.add(jButton7);
 
-        jButton1.setBackground(new java.awt.Color(0, 0, 0));
-        jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("Log out");
-        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 153, 153)));
-        jButton1.setPreferredSize(new java.awt.Dimension(130, 100));
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        jButton4.setBackground(new java.awt.Color(204, 204, 204));
+        jButton4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/update.png"))); // NOI18N
+        jButton4.setText("Update");
+        jButton4.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton4.setIconTextGap(0);
+        jButton4.setMargin(new java.awt.Insets(2, 0, 3, 0));
+        jButton4.setVerifyInputWhenFocusTarget(false);
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                jButton4ActionPerformed(evt);
             }
         });
-        jPanel11.add(jButton1);
 
-        settingsPanel.add(jPanel11, java.awt.BorderLayout.CENTER);
+        jButton5.setBackground(new java.awt.Color(204, 204, 204));
+        jButton5.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/edit.png"))); // NOI18N
+        jButton5.setText("Edit");
+        jButton5.setToolTipText("");
+        jButton5.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton5.setIconTextGap(0);
+        jButton5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton5ActionPerformed(evt);
+            }
+        });
 
-        aboutPanel.setLayout(new java.awt.BorderLayout());
+        jButton6.setBackground(new java.awt.Color(204, 204, 204));
+        jButton6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/print.png"))); // NOI18N
+        jButton6.setText("Print Receipt");
+        jButton6.setAlignmentY(0.1F);
+        jButton6.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton6.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jButton6.setIconTextGap(0);
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
 
-        jPanel3.setBackground(new java.awt.Color(204, 204, 204));
+        jPanel13.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel13.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel24.setLayout(new java.awt.CardLayout());
+        jPanel7.setBackground(new java.awt.Color(230, 230, 230));
+        jPanel7.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        aboutUsPanel.setBackground(new java.awt.Color(204, 255, 255));
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel7.setText("PET INFORMATION");
+        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 0, 250, 70));
 
-        jLabel14.setFont(new java.awt.Font("Segoe UI Black", 1, 36)); // NOI18N
-        jLabel14.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel14.setText("Mission");
+        jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel8.setText("Pet Name:");
+        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 80, 80, 20));
 
-        jTextArea2.setEditable(false);
-        jTextArea2.setBackground(new java.awt.Color(204, 255, 255));
-        jTextArea2.setColumns(20);
-        jTextArea2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jTextArea2.setForeground(new java.awt.Color(0, 0, 0));
-        jTextArea2.setRows(5);
-        jTextArea2.setText("Our vision is to be the most reliable and innovative digital pet care solution,\nempowering pet owners and professionals through smart tools, \nseamless experiences, and a shared love for animals.\n\n");
-        jScrollPane5.setViewportView(jTextArea2);
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel9.setText("Species:");
+        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 170, 70, -1));
 
-        jLabel17.setFont(new java.awt.Font("Segoe UI Black", 1, 36)); // NOI18N
-        jLabel17.setForeground(new java.awt.Color(0, 0, 0));
-        jLabel17.setText("Vision");
+        jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel10.setText("Breed:");
+        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 80, 60, -1));
 
-        jTextArea3.setBackground(new java.awt.Color(204, 255, 255));
-        jTextArea3.setColumns(20);
-        jTextArea3.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jTextArea3.setForeground(new java.awt.Color(0, 0, 0));
-        jTextArea3.setRows(5);
-        jTextArea3.setText("At iPETCARE, our mission is to deliver compassionate, \nconvenient, and high-quality pet services that ensure the health,\n happiness, and well-being of every pet in our care. \nWe strive to create a trusted platform that supports pet owners\n with everything from scheduling appointments to tracking medical records.");
-        jScrollPane6.setViewportView(jTextArea3);
+        petNameTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        petNameTextfield.setForeground(new java.awt.Color(51, 51, 51));
+        petNameTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                petNameTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel7.add(petNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 110, 170, 30));
 
-        javax.swing.GroupLayout aboutUsPanelLayout = new javax.swing.GroupLayout(aboutUsPanel);
-        aboutUsPanel.setLayout(aboutUsPanelLayout);
-        aboutUsPanelLayout.setHorizontalGroup(
-            aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                        .addGap(42, 42, 42)
-                        .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 900, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(172, Short.MAX_VALUE))
-            .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                    .addGap(40, 40, 40)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 878, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(196, Short.MAX_VALUE)))
+        speciesTextField.setBackground(new java.awt.Color(230, 230, 230));
+        speciesTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                speciesTextFieldActionPerformed(evt);
+            }
+        });
+        jPanel7.add(speciesTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 200, 170, 30));
+
+        breedTextField.setBackground(new java.awt.Color(230, 230, 230));
+        breedTextField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                breedTextFieldActionPerformed(evt);
+            }
+        });
+        jPanel7.add(breedTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 110, 170, 30));
+
+        jLabel15.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel15.setText("Schedule:");
+        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 240, -1, 20));
+
+        jLabel16.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel16.setText("Assign Assistant:");
+        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 170, -1, -1));
+
+        servicebutton.setBackground(new java.awt.Color(47, 110, 138));
+        servicebutton.setForeground(new java.awt.Color(255, 255, 255));
+        servicebutton.setText("Select Service");
+        servicebutton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        servicebutton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                servicebuttonActionPerformed(evt);
+            }
+        });
+        jPanel7.add(servicebutton, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 270, 170, 30));
+        jPanel7.add(jDateChooser1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 280, 170, 30));
+
+        JComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        JComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                JComboBoxActionPerformed(evt);
+            }
+        });
+        jPanel7.add(JComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 210, 170, -1));
+
+        jPanel13.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 530, 380));
+
+        jScrollPane3.setViewportView(jPanel13);
+
+        jPanel5.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel6.setBackground(new java.awt.Color(153, 153, 153));
+        jPanel6.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel22.setText("TOTAL BILL:");
+        jPanel6.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 110, 30));
+
+        totalBillTextfield.setEditable(false);
+        totalBillTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        totalBillTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                totalBillTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 330, 140, 30));
+
+        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel23.setText("₱");
+        jPanel6.add(jLabel23, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 330, 30, 30));
+
+        jTextArea1.setEditable(false);
+        jTextArea1.setBackground(new java.awt.Color(255, 255, 255));
+        jTextArea1.setColumns(20);
+        jTextArea1.setRows(5);
+        jScrollPane4.setViewportView(jTextArea1);
+
+        jPanel6.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 420, 280));
+
+        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel13.setText("SELECTED SERVICES");
+        jPanel6.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 10, 240, -1));
+
+        addAppointmentButton.setBackground(new java.awt.Color(47, 110, 138));
+        addAppointmentButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        addAppointmentButton.setForeground(new java.awt.Color(255, 255, 255));
+        addAppointmentButton.setText("Add Appointment");
+        addAppointmentButton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        addAppointmentButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addAppointmentButtonActionPerformed(evt);
+            }
+        });
+        jPanel6.add(addAppointmentButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 330, 140, 30));
+
+        jPanel5.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 440, 380));
+
+        jPanel9.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel9.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jPanel16.setBackground(new java.awt.Color(230, 230, 230));
+        jPanel16.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel2.setText("CLIENT INFORMATION");
+        jPanel16.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 240, -1));
+
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel3.setText("Client Name:");
+        jPanel16.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 100, 30));
+
+        classNameTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        classNameTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                classNameTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel16.add(classNameTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 90, 140, 30));
+
+        jLabel4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel4.setText("Address:");
+        jPanel16.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 160, 70, 30));
+
+        addressTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        jPanel16.add(addressTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 160, 140, 30));
+
+        emailTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        emailTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                emailTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel16.add(emailTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 230, 140, 30));
+
+        jLabel12.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel12.setText("Email:");
+        jPanel16.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(50, 240, 40, -1));
+
+        jLabel6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel6.setText("Contact:");
+        jPanel16.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 310, 50, -1));
+
+        contactTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        contactTextfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                contactTextfieldActionPerformed(evt);
+            }
+        });
+        jPanel16.add(contactTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 300, 140, 30));
+
+        jPanel9.add(jPanel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 280, 380));
+
+        javax.swing.GroupLayout appointmentsPanelLayout = new javax.swing.GroupLayout(appointmentsPanel);
+        appointmentsPanel.setLayout(appointmentsPanelLayout);
+        appointmentsPanelLayout.setHorizontalGroup(
+            appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                .addContainerGap(8, Short.MAX_VALUE)
+                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                        .addComponent(jScrollPane1)
+                        .addGap(18, 18, 18)
+                        .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                        .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(10, 10, 10)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(8, 8, 8))
         );
-        aboutUsPanelLayout.setVerticalGroup(
-            aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                .addGap(39, 39, 39)
-                .addComponent(jLabel14)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 350, Short.MAX_VALUE)
-                .addComponent(jLabel17)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(47, 47, 47))
-            .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                    .addGap(104, 104, 104)
-                    .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(393, Short.MAX_VALUE)))
+        appointmentsPanelLayout.setVerticalGroup(
+            appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(28, 28, 28)
+                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(24, 24, 24)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
 
-        jPanel24.add(aboutUsPanel, "card2");
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1114, Short.MAX_VALUE)
-            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(jPanel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 701, Short.MAX_VALUE)
-            .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(jPanel24, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        aboutPanel.add(jPanel3, java.awt.BorderLayout.CENTER);
-
-        settingsPanel.add(aboutPanel, java.awt.BorderLayout.EAST);
-
-        jPanel10.add(settingsPanel, "card6");
+        jPanel10.add(appointmentsPanel, "card3");
 
         jPanel1.add(jPanel10, java.awt.BorderLayout.CENTER);
 
@@ -1286,53 +1919,44 @@ public class homeFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void appointmentsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appointmentsButtonActionPerformed
-        appointmentsPanel.setVisible(true);
-        recordsPanel.setVisible(false);
-        servicesPanel.setVisible(false);
-        settingsPanel.setVisible(false);
-
-
+        switchPanel(appointmentsPanel);
+//        highlightButton(appointmentsButton);   
     }//GEN-LAST:event_appointmentsButtonActionPerformed
     
     private void recordsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordsButtonActionPerformed
-        appointmentsPanel.setVisible(false);
-        recordsPanel.setVisible(true);
-        servicesPanel.setVisible(false);
-        settingsPanel.setVisible(false);
-
+         switchPanel(recordsPanel);
+//         highlightButton(recordsButton);
+         loadRecordsTable(); 
     }//GEN-LAST:event_recordsButtonActionPerformed
 
     private void appointmentsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMousePressed
         appointmentsButton.setBackground(clickedcolor);
         recordsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        settingsButton.setBackground(defaultcolor);
         appointmentsButton.setForeground(white);
     }//GEN-LAST:event_appointmentsButtonMousePressed
 
     private void recordsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMousePressed
         appointmentsButton.setBackground(defaultcolor);
         recordsButton.setBackground(clickedcolor);
+        recordsButton.setBackground(defaultcolor);
+        settingsButton.setBackground(defaultcolor);
         recordsButton.setForeground(white);
     }//GEN-LAST:event_recordsButtonMousePressed
 
     private void appointmentsButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseReleased
-        appointmentsButton.setBackground(defaultcolor);
+        //appointmentsButton.setBackground(defaultcolor);
     }//GEN-LAST:event_appointmentsButtonMouseReleased
 
     private void recordsButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMouseReleased
-        recordsButton.setBackground(defaultcolor);
+       // recordsButton.setBackground(defaultcolor);
     }//GEN-LAST:event_recordsButtonMouseReleased
 
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
-        appointmentsPanel.setVisible(false);
-        recordsPanel.setVisible(false);
-        servicesPanel.setVisible(false);
-        settingsPanel.setVisible(true);
-
+        switchPanel(settingsPanel);
+//        highlightButton(settingsButton);
     }//GEN-LAST:event_settingsButtonActionPerformed
-
-    private void petNameTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_petNameTextfieldActionPerformed
-
-    }//GEN-LAST:event_petNameTextfieldActionPerformed
     
     private void appendIfSelected(StringBuilder builder, JCheckBox checkBox) {
         if (checkBox.isSelected()) {
@@ -1341,332 +1965,23 @@ public class homeFrame extends javax.swing.JFrame {
             }
             builder.append(checkBox.getText());
         }
-    }
-    
-    private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
-       
-    String clientName = classNameTextfield.getText();
-    String address = addressTextfield.getText();
-    String email = emailTextfield.getText();
-    String contact = contactTextfield.getText();
-    String petName = petNameTextfield.getText();
-    String species = speciesTextField.getText();
-    String breed = breedTextField.getText();
-
-    String selectedServices = jTextArea1.getText();
-List<String> selectedServicesList = new ArrayList<>();
-
-if (selectedServices != null && !selectedServices.trim().isEmpty()) {
-    selectedServicesList = Arrays.asList(selectedServices.split("\\n+"));  
-}
-
-
-    Date schedule = jDateChooser1.getDate();
-    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-    String sched = sdf.format(schedule);
-
-    String assistant = assistantTextfield.getText();
-    
-    
-    double totalBill = 0.0;
-    String totalBillInput = totalBillTextfield.getText();
-    String totalBillDisplay = ""; 
-
-    try {
-        
-        String cleanInput = totalBillInput.trim().replaceAll("[^\\d\\.]", "");
-        
-        
-        if (cleanInput.isEmpty()) {
-             JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
-             return;
-        }
-        
-       
-        totalBill = Double.parseDouble(cleanInput);
-
-        
-        totalBillDisplay = String.format("$%.2f", totalBill);
-        
-    } catch (NumberFormatException ex) {
-        // This will now only catch cases where the cleaned string is an invalid number format (e.g., "1.2.3")
-        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    if (clientName.isEmpty() || petName.isEmpty() || sched == null) {
-        JOptionPane.showMessageDialog(this, "Client Name, Pet Name, Services, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    // ... (Existing code for database connection and preparation)
-
-    Connection conn = null;
-    PreparedStatement pstmt = null;
-
-    try {
-        conn = jdbcConnection.getConnection();
-        if (conn == null) {
-            JOptionPane.showMessageDialog(this, "Failed to connect to the database.", "Connection Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        String sql = "INSERT INTO appointments (client_name, client_address, client_email, client_contact, "
-                + "pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        pstmt = conn.prepareStatement(sql);
-
-        pstmt.setString(1, clientName);
-        pstmt.setString(2, address);
-        pstmt.setString(3, email);
-        pstmt.setString(4, contact);
-        pstmt.setString(5, petName);
-        pstmt.setString(6, species);
-        pstmt.setString(7, breed);
-        pstmt.setString(8, selectedServices);
-        pstmt.setString(9, sched);
-        pstmt.setString(10, assistant);
-        
-        
-        pstmt.setDouble(11, totalBill); 
-
-        int rowsAffected = pstmt.executeUpdate();
-
-        if (rowsAffected > 0) {
-            JOptionPane.showMessageDialog(this, "Appointment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            // Add new row to JTable
-            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-            
-            // --- USE THE FORMATTED STRING (totalBillDisplay) FOR THE JTABLE ---
-            model.addRow(new Object[]{
-                clientName, address, email, contact,
-                petName, species, breed,
-                selectedServices, // Use the service string
-                sched, // Use the formatted date string
-                assistant, 
-                totalBillDisplay // ADD THE CURRENCY FORMATTED STRING HERE
-            });
-            // ... (Rest of the success code)
-            clearFormFields();
-            fetchAppointments(null);
-        } else {
-            JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-
-    } catch (SQLException e) {
-        // ... (Database error handling)
-    } finally {
-        // ... (Database closing)
-    }
-        
-        /*String clientName = classNameTextfield.getText();
-        String address = addressTextfield.getText();
-        String email = emailTextfield.getText();
-        String contact = contactTextfield.getText();
-        String petName = petNameTextfield.getText();
-        String species = speciesTextField.getText();
-        String breed = breedTextField.getText();
-        
-        
-        String selectedServices = jTextArea1.getText();
-        List<String> selectedServicesList = new ArrayList<>();
-        if (selectedServices != null && !selectedServices.trim().isEmpty()) {
-            selectedServicesList = Arrays.asList(selectedServices.split(",\\s*"));
-        }
-
-        
-        Date schedule = jDateChooser1.getDate();
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-        String sched = sdf.format(schedule);
-        
-        String assistant = assistantTextfield.getText();
-        double totalBill = 0.0;
-        
-        try {
-            totalBill = Double.parseDouble(totalBillTextfield.getText());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        if (clientName.isEmpty() || petName.isEmpty() || sched == null) {
-            JOptionPane.showMessageDialog(this, "Client Name, Pet Name, Services, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            conn = jdbcConnection.getConnection();
-            if (conn == null) {
-                JOptionPane.showMessageDialog(this, "Failed to connect to the database.", "Connection Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-
-            String sql = "INSERT INTO appointments (client_name, client_address, client_email, client_contact, "
-                    + "pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill) "
-                    + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            pstmt = conn.prepareStatement(sql);
-
-            pstmt.setString(1, clientName);
-            pstmt.setString(2, address);
-            pstmt.setString(3, email);
-            pstmt.setString(4, contact);
-            pstmt.setString(5, petName);
-            pstmt.setString(6, species);
-            pstmt.setString(7, breed);
-            pstmt.setString(8, selectedServices);
-            pstmt.setString(9, sched);
-            pstmt.setString(10, assistant);
-            pstmt.setDouble(11, totalBill);
-
-            int rowsAffected = pstmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                JOptionPane.showMessageDialog(this, "Appointment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                // Add new row to JTable
-                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-                model.addRow(new Object[]{
-                    clientName, address, email, contact,
-                    petName, species, breed,
-                    schedule, assistant, totalBill, 
-                });
-                clearFormFields(); 
-                fetchAppointments(null); 
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error adding appointment: " + e.getMessage());
-            JOptionPane.showMessageDialog(this,
-                    "Error adding appointment: " + e.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
-        } finally {
-            jdbcConnection.closeConnection(conn, pstmt, null);
-        }*/
-    }//GEN-LAST:event_addAppointmentButtonActionPerformed
-
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
-        if (selectedAppointmentId == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        int confirm = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to delete this appointment?",
-                "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            Connection conn = null;
-            PreparedStatement pstmt = null;
-
-            try {
-                conn = jdbcConnection.getConnection();
-                if (conn == null) {
-                    return;
-                }
-
-                String sql = "DELETE FROM appointments WHERE id=?";
-                pstmt = conn.prepareStatement(sql);
-                pstmt.setInt(1, selectedAppointmentId);
-
-                int rowsAffected = pstmt.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    JOptionPane.showMessageDialog(this, "Appointment deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    clearFormFields(); // Clear the form after successful deletion
-                    fetchAppointments(null); // Refresh the table
-                    selectedAppointmentId = -1; // Reset selected ID
-                } else {
-                    JOptionPane.showMessageDialog(this, "Failed to delete appointment. No record found with ID: " + selectedAppointmentId, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-
-            } catch (SQLException e) {
-                System.err.println("Error deleting appointment: " + e.getMessage());
-                JOptionPane.showMessageDialog(this,
-                        "Error deleting appointment: " + e.getMessage(),
-                        "Database Error",
-                        JOptionPane.ERROR_MESSAGE);
-            } finally {
-                jdbcConnection.closeConnection(conn, pstmt, null);
-            }
-        }
-    }//GEN-LAST:event_jButton3ActionPerformed
-
-    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
-
-        jTable1MouseClicked();
-        if (selectedAppointmentId == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
-        }
-    }//GEN-LAST:event_jButton5ActionPerformed
-
-    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-        // 1. Validate if a row is selected
-    if (selectedAppointmentId == -1) {
-        JOptionPane.showMessageDialog(this, "Please select an appointment from the table to print.", "No Selection", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-
-    // 2. Collect all necessary data from homeFrame's text fields/components
-    //    These fields should already be populated from jTable1MouseClicked()
-    String clientName = classNameTextfield.getText();
-    String address = addressTextfield.getText();
-    String contact = contactTextfield.getText();
-    String petName = petNameTextfield.getText();
-    String species = speciesTextField.getText();
-    String breed = breedTextField.getText();
-    String selectedServices = jTextArea1.getText(); // Services from the JTextArea
-
-    Date scheduleDate = jDateChooser1.getDate(); // Get the Date object from JDateChooser
-    String formattedSchedule = "";
-    if (scheduleDate != null) {
-        // Format the date for display in printFrame (e.g., "MM/dd/yyyy" or "yyyy-MM-dd")
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy"); // Choose your desired display format
-        formattedSchedule = sdf.format(scheduleDate);
-    }
-
-    String assistant = assistantTextfield.getText();
-    double totalBill = 0.0;
-    try {
-        totalBill = Double.parseDouble(totalBillTextfield.getText());
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Total Bill is not a valid number. Printing will proceed with 0.0.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        // Decide how to handle this - either return or use 0.0 or a default value
-    }
-
-    // 3. Create an instance of printFrame and pass the collected data via its constructor
-    //    You'll need to create this constructor in your printFrame.java (see below)
-    printFrame printer = new printFrame(
-        clientName, address, contact,
-        petName, species, breed, selectedServices,
-        formattedSchedule, assistant, totalBill
-    );
-
-    // 4. Make the printFrame visible
-    printer.setVisible(true);
-    }//GEN-LAST:event_jButton6ActionPerformed
-    
+    }    
     private void searchClientsByName() {
     String input = jTextField1.getText().trim();
 
     try {
-        // Connect to your MySQL database
-        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/petcareservices?allowPublicKeyRetrieval=true&useSSL=false", "root", "allen556");
+        
+        Connection conn = DriverManager.getConnection("jdbc:mysql:// 192.168.60.117:3306/petcareservices?allowPublicKeyRetrieval=true&useSSL=false", "root", "allen556");
 
-        // Query to search by client name (partial match)
+       
         String sql = "SELECT clients_name FROM appointments WHERE client_name=?";
         PreparedStatement stmt = conn.prepareStatement(sql);
         stmt.setString(1, "%" + input + "%");
 
         ResultSet rs = stmt.executeQuery();
-
-        // Update the JTable
+       
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.setRowCount(0); // Clear old data
+        model.setRowCount(0); 
 
         ResultSetMetaData meta = rs.getMetaData();
         int columnCount = meta.getColumnCount();
@@ -1689,150 +2004,48 @@ if (selectedServices != null && !selectedServices.trim().isEmpty()) {
     }
 }
     
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-
-        if (selectedAppointmentId == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to update.", "No Selection", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Collect updated data from UI fields
-        String clientName = classNameTextfield.getText();
-        String address = addressTextfield.getText();
-        String email = emailTextfield.getText();
-        String contact = contactTextfield.getText();
-        String petName = petNameTextfield.getText();
-        String species = speciesTextField.getText();
-        String breed = breedTextField.getText();
-        /**String selected = (String) servicesComboBox.getSelectedItem();
-        List<String> selectedServicesList = Arrays.asList(selected.split(",\\s*"));
-        String selectedServices = String.join(", ", selectedServicesList);**/
-        
-        String selectedServices = jTextArea1.getText();
-        List<String> selectedServicesList = new ArrayList<>();
-        if (selectedServices != null && !selectedServices.trim().isEmpty()) {
-            selectedServicesList = Arrays.asList(selectedServices.split(",\\s*"));
-        }
-        
-        Date schedule = jDateChooser1.getDate();
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-        String sched = sdf.format(schedule);
-        String assistant = assistantTextfield.getText();
-        double totalBill = 0.0;
-        try {
-            totalBill = Double.parseDouble(totalBillTextfield.getText());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Basic validation
-        if (clientName.isEmpty() || petName.isEmpty() || sched == null) {
-            JOptionPane.showMessageDialog(this, "Client Name, Pet Name, Services, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-
-        try {
-            conn = jdbcConnection.getConnection();
-            if (conn == null) {
-                return;
-            }
-
-            String sql = "UPDATE appointments SET client_name=?, client_address=?, client_email=?, client_contact=?, "
-                    + "pet_name=?, pet_species=?, pet_breed=?, selected_services=?, schedule=?, assigned_assistant=?, total_bill=? "
-                    + "WHERE id=?";
-            pstmt = conn.prepareStatement(sql);
-
-            // Set parameters for the prepared statement (order matters!)
-            pstmt.setString(1, clientName);
-            pstmt.setString(2, address);
-            pstmt.setString(3, email);
-            pstmt.setString(4, contact);
-            pstmt.setString(5, petName);
-            pstmt.setString(6, species);
-            pstmt.setString(7, breed);
-            pstmt.setString(8, selectedServices);
-            pstmt.setString(9, sched);
-            pstmt.setString(10, assistant);
-            pstmt.setDouble(11, totalBill);
-            pstmt.setInt(12, selectedAppointmentId); // Set the ID for the WHERE clause
-
-            int rowsAffected = pstmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                JOptionPane.showMessageDialog(this, "Appointment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                clearFormFields(); // Clear the form after successful update
-                fetchAppointments(null); // Refresh the table
-                selectedAppointmentId = -1; // Reset selected ID
-            } else {
-                JOptionPane.showMessageDialog(this, "Failed to update appointment. No record found with ID: " + selectedAppointmentId, "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error updating appointment: " + e.getMessage());
-            JOptionPane.showMessageDialog(this,
-                    "Error updating appointment: " + e.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
-        } finally {
-            jdbcConnection.closeConnection(conn, pstmt, null);
-        }
-    }//GEN-LAST:event_jButton4ActionPerformed
-
     
-    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-
-    }//GEN-LAST:event_jTable1MouseClicked
-
-    private void speciesTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_speciesTextFieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_speciesTextFieldActionPerformed
-
     private void groomingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_groomingButtonActionPerformed
-        //        cardLayout.show(jPanel5, "groomingCard");
+        
         groomingServicesPanel.setVisible(true);
         boardingServicesPanel.setVisible(false);
         petWalkingServicesPanel.setVisible(false);
         dayCareServicesPanel.setVisible(false);
         trainingServicesPanel.setVisible(false);
         miscellaneousServicesPanel.setVisible(false);
-        //        groomingServicesPanel.getParent().setComponentZOrder(groomingServicesPanel, 1);
+       
         groomingServicesPanel.revalidate();
         groomingServicesPanel.repaint();
     }//GEN-LAST:event_groomingButtonActionPerformed
 
     private void boardingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_boardingButtonActionPerformed
-        //          cardLayout.show(jPanel5, "boardingCard");
+       
         groomingServicesPanel.setVisible(false);
         boardingServicesPanel.setVisible(true);
         petWalkingServicesPanel.setVisible(false);
         dayCareServicesPanel.setVisible(false);
         trainingServicesPanel.setVisible(false);
         miscellaneousServicesPanel.setVisible(false);
-        //        boardingServicesPanel.getParent().setComponentZOrder(boardingServicesPanel, 2);
+      
         boardingServicesPanel.revalidate();
         boardingServicesPanel.repaint();
     }//GEN-LAST:event_boardingButtonActionPerformed
 
     private void petwalkingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_petwalkingButtonActionPerformed
-        //        cardLayout.show(jPanel5, "petWalkingCard");
+       
         groomingServicesPanel.setVisible(false);
         boardingServicesPanel.setVisible(false);
         petWalkingServicesPanel.setVisible(true);
         dayCareServicesPanel.setVisible(false);
         trainingServicesPanel.setVisible(false);
         miscellaneousServicesPanel.setVisible(false);
-        //        petWalkingServicesPanel.getParent().setComponentZOrder(petWalkingServicesPanel, 3);
+     
         petWalkingServicesPanel.revalidate();
         petWalkingServicesPanel.repaint();
     }//GEN-LAST:event_petwalkingButtonActionPerformed
 
     private void trainingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_trainingButtonActionPerformed
-        //          cardLayout.show(jPanel5, "trainingCard");
-        //        trainingServicesPanel.getParent().setComponentZOrder(trainingServicesPanel, 4);
+        
         groomingServicesPanel.setVisible(false);
         boardingServicesPanel.setVisible(false);
         petWalkingServicesPanel.setVisible(false);
@@ -1844,20 +2057,19 @@ if (selectedServices != null && !selectedServices.trim().isEmpty()) {
     }//GEN-LAST:event_trainingButtonActionPerformed
 
     private void daycareButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_daycareButtonActionPerformed
-        //          cardLayout.show(jPanel5, "dayCareCard");
+      
         groomingServicesPanel.setVisible(false);
         boardingServicesPanel.setVisible(false);
         petWalkingServicesPanel.setVisible(false);
         dayCareServicesPanel.setVisible(true);
         trainingServicesPanel.setVisible(false);
         miscellaneousServicesPanel.setVisible(false);
-        //        dayCareServicesPanel.getParent().setComponentZOrder(dayCareServicesPanel, 5);
         dayCareServicesPanel.revalidate();
         dayCareServicesPanel.repaint();
     }//GEN-LAST:event_daycareButtonActionPerformed
 
     private void miscellaneousButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miscellaneousButtonActionPerformed
-        //        cardLayout.show(jPanel5, "miscellaneousCard");
+
         groomingServicesPanel.setVisible(false);
         boardingServicesPanel.setVisible(false);
         petWalkingServicesPanel.setVisible(false);
@@ -1868,12 +2080,21 @@ if (selectedServices != null && !selectedServices.trim().isEmpty()) {
         miscellaneousServicesPanel.revalidate();
         miscellaneousServicesPanel.repaint();
     }//GEN-LAST:event_miscellaneousButtonActionPerformed
-// Example pricing map to be defined as a class member
+
 private final Map<String, Double> servicePrices = createServicePricesMap();
 
 private Map<String, Double> createServicePricesMap() {
     Map<String, Double> prices = new HashMap<>();
     
+    prices.put("Full-Day Boarding", 100.00); 
+    prices.put("Half-Day Boarding", 50.00);
+    prices.put("Overnight Stay", 200.00); 
+    
+    prices.put("Pet Photography Session", 100.00); 
+    prices.put("Pet Massage or Spa", 150.00); 
+    prices.put("Pet Nutrition Consultation", 50.00); 
+    prices.put("Pet Birthday Celebration", 1000.00); 
+    prices.put("Pet Taxi (Pickup & Drop-off service)", 100.00); 
     
     prices.put("Full Grooming", 65.00); 
     prices.put("Nail Clipping", 15.00); 
@@ -1882,150 +2103,91 @@ private Map<String, Double> createServicePricesMap() {
     prices.put("Bath Only", 35.00);
     prices.put("Ear Cleaning", 12.00);
     prices.put("De-shedding Treatment", 40.00);
-
     
-    prices.put("30 min Walk", 20.00); 
-    prices.put("60 min Walk", 35.00); 
-    prices.put("Daily Park Visit", 45.00); 
+    prices.put("Pet Sitting (In-home care)", 100.00); 
+    prices.put("Feeding & Medication Management", 65.00); 
+
+    prices.put("30-Minute Walk", 20.00); 
+    prices.put("1-Hour Walk", 35.00); 
+    prices.put("Daily Walk Package", 45.00); 
+    
+    prices.put("Basic Obedience Training", 100.00); 
+    prices.put("Behavioral Correction", 100.00); 
+    prices.put("Trick Training", 100.00); 
+    prices.put("Potty Training", 100.00); 
+    prices.put("Puppy Socialization", 65.00); 
 
     
     
     return prices;
 }
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-      List<String> selectedServices = new ArrayList<>();
-    double totalBill = 0.0; // Initialize total bill
+     List<String> selectedServices = new ArrayList<>();
+double totalBill = 0.0; 
 
-    // --- Collect selections (Your existing collection logic) ---
+// 1. Collect selected names from checkboxes
+if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
+if (jCheckBox2.isSelected()) selectedServices.add(jCheckBox2.getText());
+if (jCheckBox3.isSelected()) selectedServices.add(jCheckBox3.getText());
+if (jCheckBox4.isSelected()) selectedServices.add(jCheckBox4.getText());
+if (jCheckBox5.isSelected()) selectedServices.add(jCheckBox5.getText());
+if (jCheckBox6.isSelected()) selectedServices.add(jCheckBox6.getText());
+if (jCheckBox7.isSelected()) selectedServices.add(jCheckBox7.getText());
+if (jCheckBox8.isSelected()) selectedServices.add(jCheckBox8.getText());
+if (jCheckBox9.isSelected()) selectedServices.add(jCheckBox9.getText());
+if (jCheckBox10.isSelected()) selectedServices.add(jCheckBox10.getText());
+if (jCheckBox11.isSelected()) selectedServices.add(jCheckBox11.getText());
+if (jCheckBox12.isSelected()) selectedServices.add(jCheckBox12.getText());
+if (jCheckBox13.isSelected()) selectedServices.add(jCheckBox13.getText());
+if (jCheckBox14.isSelected()) selectedServices.add(jCheckBox14.getText());
+if (jCheckBox15.isSelected()) selectedServices.add(jCheckBox15.getText());
+if (jCheckBox16.isSelected()) selectedServices.add(jCheckBox16.getText());
+if (jCheckBox17.isSelected()) selectedServices.add(jCheckBox17.getText());
+if (jCheckBox18.isSelected()) selectedServices.add(jCheckBox18.getText());
+if (jCheckBox19.isSelected()) selectedServices.add(jCheckBox19.getText());
+if (jCheckBox20.isSelected()) selectedServices.add(jCheckBox20.getText());
+if (jCheckBox21.isSelected()) selectedServices.add(jCheckBox21.getText());
+if (jCheckBox22.isSelected()) selectedServices.add(jCheckBox22.getText());
+if (jCheckBox23.isSelected()) selectedServices.add(jCheckBox23.getText());
+if (jCheckBox24.isSelected()) selectedServices.add(jCheckBox24.getText());
+if (jCheckBox25.isSelected()) selectedServices.add(jCheckBox25.getText());
 
-    // Collect selections from Grooming
-    if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
-    if (jCheckBox2.isSelected()) selectedServices.add(jCheckBox2.getText());
-    if (jCheckBox3.isSelected()) selectedServices.add(jCheckBox3.getText());
-    if (jCheckBox4.isSelected()) selectedServices.add(jCheckBox4.getText());
-    if (jCheckBox5.isSelected()) selectedServices.add(jCheckBox5.getText());
-    if (jCheckBox6.isSelected()) selectedServices.add(jCheckBox6.getText());
-    if (jCheckBox7.isSelected()) selectedServices.add(jCheckBox7.getText());
 
-    // Collect selections from Pet Walking
-    if (jCheckBox8.isSelected()) selectedServices.add(jCheckBox8.getText());
-    if (jCheckBox9.isSelected()) selectedServices.add(jCheckBox9.getText());
-    if (jCheckBox10.isSelected()) selectedServices.add(jCheckBox10.getText());
+List<String> detailedServiceList = new ArrayList<>();
 
-    // Collect selections from Day Care
-    if (jCheckBox11.isSelected()) selectedServices.add(jCheckBox11.getText());
-    if (jCheckBox12.isSelected()) selectedServices.add(jCheckBox12.getText());
-
-    // Collect selections from Training
-    if (jCheckBox13.isSelected()) selectedServices.add(jCheckBox13.getText());
-    if (jCheckBox14.isSelected()) selectedServices.add(jCheckBox14.getText());
-    if (jCheckBox15.isSelected()) selectedServices.add(jCheckBox15.getText());
-    if (jCheckBox16.isSelected()) selectedServices.add(jCheckBox16.getText());
-    if (jCheckBox17.isSelected()) selectedServices.add(jCheckBox17.getText());
-
-    // Collect selections from Miscellaneous
-    if (jCheckBox18.isSelected()) selectedServices.add(jCheckBox18.getText());
-    if (jCheckBox19.isSelected()) selectedServices.add(jCheckBox19.getText());
-    if (jCheckBox20.isSelected()) selectedServices.add(jCheckBox20.getText());
-    if (jCheckBox21.isSelected()) selectedServices.add(jCheckBox21.getText());
-    if (jCheckBox22.isSelected()) selectedServices.add(jCheckBox22.getText());
-
-    // Collect selections from Boarding
-    if (jCheckBox23.isSelected()) selectedServices.add(jCheckBox23.getText());
-    if (jCheckBox24.isSelected()) selectedServices.add(jCheckBox24.getText());
-    if (jCheckBox25.isSelected()) selectedServices.add(jCheckBox25.getText());
-
-    // --- NEW: Calculate Total Bill ---
-    for (String serviceName : selectedServices) {
-        // Look up the price for the service name in the map
-        Double price = servicePrices.get(serviceName);
-        
-        if (price != null) {
-            totalBill += price;
-        } else {
-            // Handle case where a service name might not be in the map (optional)
-            System.err.println("Warning: Price not found for service: " + serviceName);
-        }
-    }
-
-    if (selectedServices.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "No services were selected.", "Information", JOptionPane.INFORMATION_MESSAGE);
-        // Reset the total if no services are selected
-        totalBillTextfield.setText("0.00"); 
-    } else {
-        String verticalServices = String.join("\n", selectedServices);
-jTextArea1.setText(verticalServices);
-
-        // Pass selected services back to homeFrame's components
-        /*String joinedServices = String.join(", ", selectedServices);
-        jTextArea1.setText(joinedServices); // Update jTextArea1 with service list*/
-
-        // Update the Total Bill TextField (Assuming it's named totalBillTextField)
-        String formattedTotal = String.format("%.2f", totalBill);
-        totalBillTextfield.setText(formattedTotal); 
-
-        JOptionPane.showMessageDialog(this, "Selected services added: \n" + String.join("\n", selectedServices) + 
-                                          "\n\nTotal Cost: " + formattedTotal, "Success", JOptionPane.INFORMATION_MESSAGE);
-    }
+for (String serviceName : selectedServices) {
+    Double price = servicePrices.get(serviceName);
     
-     appointmentsPanel.setVisible(true);
-        recordsPanel.setVisible(false);
-        servicesPanel.setVisible(false);
-        settingsPanel.setVisible(false);
-        servicesPanel.revalidate();
-        servicesPanel.repaint();
-        /* List<String> selectedServices = new ArrayList<>();
-
-        // Collect selections from Grooming
-        if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
-        if (jCheckBox2.isSelected()) selectedServices.add(jCheckBox2.getText());
-        if (jCheckBox3.isSelected()) selectedServices.add(jCheckBox3.getText());
-        if (jCheckBox4.isSelected()) selectedServices.add(jCheckBox4.getText());
-        if (jCheckBox5.isSelected()) selectedServices.add(jCheckBox5.getText());
-        if (jCheckBox6.isSelected()) selectedServices.add(jCheckBox6.getText());
-        if (jCheckBox7.isSelected()) selectedServices.add(jCheckBox7.getText());
-
-        // Collect selections from Pet Walking
-        if (jCheckBox8.isSelected()) selectedServices.add(jCheckBox8.getText());
-        if (jCheckBox9.isSelected()) selectedServices.add(jCheckBox9.getText());
-        if (jCheckBox10.isSelected()) selectedServices.add(jCheckBox10.getText());
-
-        // Collect selections from Day Care
-        if (jCheckBox11.isSelected()) selectedServices.add(jCheckBox11.getText());
-        if (jCheckBox12.isSelected()) selectedServices.add(jCheckBox12.getText());
-
-        // Collect selections from Training
-        if (jCheckBox13.isSelected()) selectedServices.add(jCheckBox13.getText());
-        if (jCheckBox14.isSelected()) selectedServices.add(jCheckBox14.getText());
-        if (jCheckBox15.isSelected()) selectedServices.add(jCheckBox15.getText());
-        if (jCheckBox16.isSelected()) selectedServices.add(jCheckBox16.getText());
-        if (jCheckBox17.isSelected()) selectedServices.add(jCheckBox17.getText());
-
-        // Collect selections from Miscellaneous
-        if (jCheckBox18.isSelected()) selectedServices.add(jCheckBox18.getText());
-        if (jCheckBox19.isSelected()) selectedServices.add(jCheckBox19.getText());
-        if (jCheckBox20.isSelected()) selectedServices.add(jCheckBox20.getText());
-        if (jCheckBox21.isSelected()) selectedServices.add(jCheckBox21.getText());
-        if (jCheckBox22.isSelected()) selectedServices.add(jCheckBox22.getText());
-
-        // Collect selections from Boarding
-        if (jCheckBox23.isSelected()) selectedServices.add(jCheckBox23.getText());
-        if (jCheckBox24.isSelected()) selectedServices.add(jCheckBox24.getText());
-        if (jCheckBox25.isSelected()) selectedServices.add(jCheckBox25.getText());
+    if (price != null) {
+        totalBill += price;
+       
+        detailedServiceList.add(String.format("%s - %.2f", serviceName, price));
+    } else {
+        System.err.println("Warning: Price not found for service: " + serviceName);
+        detailedServiceList.add(serviceName + " - Price N/A");
+    }
+}
 
 
-        if (selectedServices.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No services were selected.", "Information", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            // Pass selected services back to homeFrame's setSelectedServices method
-            String joinedServices = String.join(", ", selectedServices);
-            jTextArea1.setText(joinedServices); // Update jTextArea1 in homeFrame
+if (selectedServices.isEmpty()) {
+    JOptionPane.showMessageDialog(this, "No services were selected.", "Information", JOptionPane.INFORMATION_MESSAGE);
+    totalBillTextfield.setText("0.00"); 
+} else {
+   
+    String verticalServices = String.join("\n", detailedServiceList);
+    jTextArea1.setText(verticalServices);
 
-            JOptionPane.showMessageDialog(this, "Selected services added: \n" + String.join("\n", selectedServices), "Success", JOptionPane.INFORMATION_MESSAGE);
-            
-        }*/
-        
-        
+    String formattedTotal = String.format("%.2f", totalBill);
+    totalBillTextfield.setText(formattedTotal); 
+
+    
+    JOptionPane.showMessageDialog(this, 
+            "Selected services added: \n" + verticalServices + 
+            "\n\nTotal Cost: " + formattedTotal, 
+            "Success", JOptionPane.INFORMATION_MESSAGE);
+}
+
+    switchPanel(appointmentsPanel);
     }//GEN-LAST:event_addButtonActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -2046,7 +2208,6 @@ jTextArea1.setText(verticalServices);
 
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
         aboutUsPanel.setVisible(true);
-       
         aboutUsPanel.revalidate();
         aboutUsPanel.repaint();
     }//GEN-LAST:event_jButton7ActionPerformed
@@ -2054,19 +2215,6 @@ jTextArea1.setText(verticalServices);
     private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
 
     }//GEN-LAST:event_jTextField1ActionPerformed
-
-    private void servicebuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servicebuttonActionPerformed
-        appointmentsPanel.setVisible(false);
-        recordsPanel.setVisible(false);
-        servicesPanel.setVisible(true);
-        settingsPanel.setVisible(false);
-        servicesPanel.revalidate();
-        servicesPanel.repaint();
-    }//GEN-LAST:event_servicebuttonActionPerformed
-
-    private void totalBillTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalBillTextfieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_totalBillTextfieldActionPerformed
 
     private void jCheckBox6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox6ActionPerformed
         // TODO add your handling code here:
@@ -2088,6 +2236,10 @@ jTextArea1.setText(verticalServices);
         // TODO add your handling code here:
     }//GEN-LAST:event_jCheckBox8ActionPerformed
 
+    private void contactTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contactTextfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_contactTextfieldActionPerformed
+
     private void emailTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailTextfieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_emailTextfieldActionPerformed
@@ -2096,258 +2248,591 @@ jTextArea1.setText(verticalServices);
 
     }//GEN-LAST:event_classNameTextfieldActionPerformed
 
-    private void assistantTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_assistantTextfieldActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_assistantTextfieldActionPerformed
+    private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
+    String clientName = classNameTextfield.getText().trim();
+    String address = addressTextfield.getText().trim();
+    String email = emailTextfield.getText().trim();
+    String contact = contactTextfield.getText();
+    String petName = petNameTextfield.getText().trim();
+    String species = speciesTextField.getText().trim();
+    String breed = breedTextField.getText().trim();
+    
+    String selectedServices = jTextArea1.getText();
+    Date schedule = jDateChooser1.getDate();
+    String assistant = JComboBox.getSelectedItem().toString().trim();
 
+    // Validation code (keep existing validation)...
+    List<String> missingFields = new ArrayList<>();
+    if (clientName.isEmpty()) missingFields.add("Client Name");
+    if (address.isEmpty()) missingFields.add("Address");
+    if (email.isEmpty()) missingFields.add("Email");
+    if (petName.isEmpty()) missingFields.add("Pet Name");
+    if (species.isEmpty()) missingFields.add("Species");
+    if (breed.isEmpty()) missingFields.add("Breed");
+    if (schedule == null) missingFields.add("Schedule Date");
+    if (assistant.isEmpty()) missingFields.add("Assistant");
     
-       
-    
-    
-    public void setSelectedServices(String services) {
-        jTextArea1.setText(services);
+    if (!missingFields.isEmpty()) {
+        String message = "Please fill in the following required fields:\n - " + String.join("\n - ", missingFields);
+        JOptionPane.showMessageDialog(this, message, "Missing Required Information", JOptionPane.WARNING_MESSAGE);
+        return;
     }
 
-    private void jTable1MouseClicked() {
-        int selectedRow = jTable1.getSelectedRow();
-        if (selectedRow >= 0) {
-            editingRow = selectedRow;
-            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+    String sched = sdf.format(schedule);
 
-            // Retrieve data from the selected row.
-            // Column indices must match the order in your DefaultTableModel defined in initComponents().
-            selectedAppointmentId = (int) model.getValueAt(selectedRow, 11); // Assuming ID is in column 11 (0-indexed)
+    // Contact validation (keep existing validation)...
+    Long clientContactNumber = null;
+    String contactTrimmed = contact.trim();
+    if (contactTrimmed.matches(".*[^\\d\\s].*")) {
+        JOptionPane.showMessageDialog(this, "Input Error: Only digits are allowed in the contact field.", "Invalid Character", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    String cleanContactInput = contactTrimmed.replaceAll("[^\\d]", "");
+    if (cleanContactInput.isEmpty() || cleanContactInput.length() != 11) {
+        JOptionPane.showMessageDialog(this, "Contact number must be exactly 11 digits long.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    try {
+        clientContactNumber = Long.parseLong(cleanContactInput);
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "Invalid contact number.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-            classNameTextfield.setText(model.getValueAt(selectedRow, 0).toString()); // Client Name
-            addressTextfield.setText(model.getValueAt(selectedRow, 1).toString()); // Address
-            emailTextfield.setText(model.getValueAt(selectedRow, 2).toString()); // Email
-            contactTextfield.setText(model.getValueAt(selectedRow, 3).toString()); // Contact
-            petNameTextfield.setText(model.getValueAt(selectedRow, 4).toString()); // Pet Name
-            speciesTextField.setText(model.getValueAt(selectedRow, 5).toString()); // Species
-            breedTextField.setText(model.getValueAt(selectedRow, 6).toString()); // Breed
-            
-            String servicesString = model.getValueAt(selectedRow, 7).toString();
-            jTextArea1.setText(servicesString);
-            /**String servicesString = model.getValueAt(selectedRow, 7).toString(); // Selected Services (comma-separated string)
-            // Convert comma-separated string back to List<String> for ComboBoxMultiSelection
-            // Handle potential null or empty string to avoid error with split()
-            if (servicesString != null && !servicesString.trim().isEmpty()) {
-                List<String> servicesList = new ArrayList<>(Arrays.asList(servicesString.split(",\\s*")));
-                servicesComboBox.setSelectedItem(servicesList); // Set selected items in the multi-selection combo box
-            } else {
-                servicesComboBox.setSelectedIndex(0);// Clear if no services were stored
-            }**/
+    // Total bill validation (keep existing validation)...
+    double totalBill = 0.0;
+    String totalBillInput = totalBillTextfield.getText();
+    String cleanBillInput = totalBillInput.trim().replaceAll("[^\\d\\.]", "");
+    if (totalBillInput.trim().isEmpty()) {
+        JOptionPane.showMessageDialog(this, "The Total Bill field is required.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    try {
+        if (cleanBillInput.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        totalBill = Double.parseDouble(cleanBillInput);
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-            String scheduleString = model.getValueAt(selectedRow, 8).toString(); // Schedule as String
-            if (scheduleString != null && !scheduleString.trim().isEmpty()) {
-                try {
-                    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy"); // Assuming "MM/dd/yyyy" format
-                    Date date = sdf.parse(scheduleString);
-                    jDateChooser1.setDate(date); // Set the parsed Date to JDateChooser
-                } catch (Exception e    ) {
-                    System.err.println("Error parsing schedule date from table: " + scheduleString + " - " + e.getMessage());
-                    JOptionPane.showMessageDialog(this, "Error parsing schedule date. Format might be incorrect.", "Date Error", JOptionPane.WARNING_MESSAGE);
-                    jDateChooser1.setDate(null); // Clear the date chooser on error
-                }
-            } else {
-                jDateChooser1.setDate(null); // Clear the date chooser if no date is found
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Failed to connect to the database.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sql = "INSERT INTO appointments (client_name, client_address, client_email, client_contact, pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        pstmt = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+        pstmt.setString(1, clientName);
+        pstmt.setString(2, address);
+        pstmt.setString(3, email);
+        pstmt.setLong(4, clientContactNumber);
+        pstmt.setString(5, petName);
+        pstmt.setString(6, species);
+        pstmt.setString(7, breed);
+        pstmt.setString(8, selectedServices);
+        pstmt.setString(9, sched);
+        pstmt.setString(10, assistant);
+        pstmt.setDouble(11, totalBill);
+
+        int rowsAffected = pstmt.executeUpdate();
+        if (rowsAffected > 0) {
+            // Retrieve the generated ID
+            ResultSet generatedKeys = pstmt.getGeneratedKeys();
+            int generatedId = -1;
+            if (generatedKeys.next()) {
+                generatedId = generatedKeys.getInt(1);
             }
-            assistantTextfield.setText(model.getValueAt(selectedRow, 9).toString()); // Assistant
-            totalBillTextfield.setText(model.getValueAt(selectedRow, 10).toString()); // Total Bill
+            generatedKeys.close();
+
+            // Add to jTable1
+            DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+            jTable1Model.addRow(new Object[]{
+                clientName,       // Client Name
+                petName,          // Pet Name
+                species,          // Species
+                selectedServices, // Services
+                generatedId       // ID (hidden)
+            });
+            
+            // Refresh recordsTable to show new entry
+            loadRecordsTable();
+            
+            JOptionPane.showMessageDialog(this, "Appointment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            clearFormFields();
+            
+            // Uncheck all service checkboxes
+            jCheckBox1.setSelected(false);
+            jCheckBox2.setSelected(false);
+            jCheckBox3.setSelected(false);
+            jCheckBox4.setSelected(false);
+            jCheckBox5.setSelected(false);
+            jCheckBox6.setSelected(false);
+            jCheckBox7.setSelected(false);
+            jCheckBox8.setSelected(false);
+            jCheckBox9.setSelected(false);
+            jCheckBox10.setSelected(false);
+            jCheckBox11.setSelected(false);
+            jCheckBox12.setSelected(false);
+            jCheckBox13.setSelected(false);
+            jCheckBox14.setSelected(false);
+            jCheckBox15.setSelected(false);
+            jCheckBox16.setSelected(false);
+            jCheckBox17.setSelected(false);
+            jCheckBox18.setSelected(false);
+            jCheckBox19.setSelected(false);
+            jCheckBox20.setSelected(false);
+            jCheckBox21.setSelected(false);
+            jCheckBox22.setSelected(false);
+            jCheckBox23.setSelected(false);
+            jCheckBox24.setSelected(false);
+            jCheckBox25.setSelected(false);
         } else {
-            // If no row is selected (e.g., selection cleared), reset editing state
-            editingRow = -1;
-            selectedAppointmentId = -1;
-            clearFormFields(); // Optionally clear fields when selection is lost
+            JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
+    } finally {
+        try {
+            if (pstmt != null) pstmt.close();
+            if (conn != null) conn.close();
+        } catch (SQLException ex) {
+        }
+    }                                                 
+    }//GEN-LAST:event_addAppointmentButtonActionPerformed
+
+    private void totalBillTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalBillTextfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_totalBillTextfieldActionPerformed
+
+    private void servicebuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_servicebuttonActionPerformed
+        switchPanel(servicesPanel);
+    }//GEN-LAST:event_servicebuttonActionPerformed
+
+    private void breedTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_breedTextFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_breedTextFieldActionPerformed
+
+    private void speciesTextFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_speciesTextFieldActionPerformed
+
+    }//GEN-LAST:event_speciesTextFieldActionPerformed
+
+    private void petNameTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_petNameTextfieldActionPerformed
+
+    }//GEN-LAST:event_petNameTextfieldActionPerformed
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+
+        if (selectedAppointmentId == -1) {
+            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to print.", "No Selection", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int row = jTable1.getSelectedRow();
+        int modelRow = jTable1.convertRowIndexToModel(row);
+
+        String clientName = classNameTextfield.getText();
+        String address = addressTextfield.getText();
+        String contact = contactTextfield.getText();
+        String petName = petNameTextfield.getText();
+        String species = speciesTextField.getText();
+        String breed = breedTextField.getText();
+        String selectedServices = jTextArea1.getText();
+        Date scheduleDate = jDateChooser1.getDate();
+        String formattedSchedule = "";
+        if (scheduleDate != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+            formattedSchedule = sdf.format(scheduleDate);
+        }
+
+String appointmentCode = "";  // Fetch from DB using selectedAppointmentId
+try (Connection con = jdbcConnection.getConnection()) {
+    PreparedStatement ps = con.prepareStatement("SELECT appointment_code FROM appointments WHERE id = ?");
+    ps.setInt(1, selectedAppointmentId);
+    ResultSet rs = ps.executeQuery();
+    if (rs.next()) appointmentCode = rs.getString("appointment_code");
+} catch (Exception e) { /* handle */ }
+
+        String assistant = JComboBox.getSelectedItem().toString();
+        double totalBill = 0.0;
+        try {
+            totalBill = Double.parseDouble(totalBillTextfield.getText());
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Total Bill is not a valid number. Printing will proceed with 0.0.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        }
+
+         printFrame printer = new printFrame(
+        clientName, address, contact, petName, species, breed, selectedServices,
+        formattedSchedule, assistant, totalBill
+    );
+    printer.setVisible(true);
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
+
+    // MODIFIED: Only load fields when Edit button is clicked
+    if (selectedAppointmentId == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an appointment from the table to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // Load fields from database
+    loadFieldsFromDatabase(selectedAppointmentId);
+    
+    // Enable editing
+    classNameTextfield.setEditable(true);
+    addressTextfield.setEditable(true);
+    emailTextfield.setEditable(true);
+    contactTextfield.setEditable(true);
+    petNameTextfield.setEditable(true);
+    speciesTextField.setEditable(true);
+    breedTextField.setEditable(true);
+    totalBillTextfield.setEditable(true);
+    jDateChooser1.setEnabled(true);
+    jTextArea1.setEditable(true);
+    
+    JOptionPane.showMessageDialog(this, "Edit mode enabled. Modify fields and click Update.", "Edit Mode", JOptionPane.INFORMATION_MESSAGE);
+
+    }//GEN-LAST:event_jButton5ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+if (selectedAppointmentId == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an appointment from the table to update.", "No Selection", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    // Collect and validate data
+    String clientName = classNameTextfield.getText().trim();
+    String address = addressTextfield.getText().trim();
+    String email = emailTextfield.getText().trim();
+    String contact = contactTextfield.getText().trim();
+    String petName = petNameTextfield.getText().trim();
+    String species = speciesTextField.getText().trim();
+    String breed = breedTextField.getText().trim();
+    String selectedServices = jTextArea1.getText().trim();
+    Date schedule = jDateChooser1.getDate();
+    String assistant = JComboBox.getSelectedItem().toString().trim();
+    double totalBill = 0.0;
+    
+    try {
+        totalBill = Double.parseDouble(totalBillTextfield.getText().trim());
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    if (clientName.isEmpty() || petName.isEmpty() || schedule == null) {
+        JOptionPane.showMessageDialog(this, "Client Name, Pet Name, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+    String sched = sdf.format(schedule);
+
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null || !conn.isValid(5)) {
+            JOptionPane.showMessageDialog(this, "Failed to establish a valid database connection.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sql = "UPDATE appointments SET client_name=?, client_address=?, client_email=?, client_contact=?, pet_name=?, pet_species=?, pet_breed=?, selected_services=?, schedule=?, assigned_assistant=?, total_bill=? WHERE id=?";
+        pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, clientName);
+        pstmt.setString(2, address);
+        pstmt.setString(3, email);
+        pstmt.setString(4, contact);
+        pstmt.setString(5, petName);
+        pstmt.setString(6, species);
+        pstmt.setString(7, breed);
+        pstmt.setString(8, selectedServices);
+        pstmt.setString(9, sched);
+        pstmt.setString(10, assistant);
+        pstmt.setDouble(11, totalBill);
+        pstmt.setInt(12, selectedAppointmentId);
+
+        int rowsAffected = pstmt.executeUpdate();
+        if (rowsAffected > 0) {
+    JOptionPane.showMessageDialog(this, "Appointment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    
+    // Update jTable1 - find the row with matching ID
+    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+    for (int i = 0; i < jTable1Model.getRowCount(); i++) {
+        int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column
+        if (rowId == selectedAppointmentId) {
+            jTable1Model.setValueAt(clientName, i, 0);
+            jTable1Model.setValueAt(petName, i, 1);
+            jTable1Model.setValueAt(species, i, 2);
+            jTable1Model.setValueAt(selectedServices, i, 3);
+            break;
         }
     }
+    
+    // Refresh recordsTable
+    loadRecordsTable();
+            
+            clearFormFields();
+            selectedAppointmentId = -1;
+            editingRow = -1;
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to update appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException e) {
+        JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
+    } finally {
+        jdbcConnection.closeConnection(conn, pstmt, null);
+    }
+    }//GEN-LAST:event_jButton4ActionPerformed
 
-    private void clearFormFields() {
-        classNameTextfield.setText(""); // Client Name
-        addressTextfield.setText(""); // Address
-        emailTextfield.setText(""); // Email
-        contactTextfield.setText(""); // Contact
-        petNameTextfield.setText(""); // Pet Name
-        speciesTextField.setText(""); // Species
-        breedTextField.setText(""); // Breed
-        //servicesComboBox.setSelectedIndex(0); // Clear selected items in the multi-selection combo box
-        jTextArea1.setText("");
-        jDateChooser1.setDate(null); // Schedule
-        assistantTextfield.setText(""); // Assistant
-        // Assuming jTextFieldTotalBill is the JTextField for Total Bill.
-        // You need to add this JTextField in NetBeans Design View if it's not there.
-        totalBillTextfield.setText("");
-        selectedAppointmentId = -1; // Reset selected ID
-        jTable1.clearSelection(); // Clear table selection
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+if (selectedAppointmentId == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an appointment from the table to delete.", "No Selection", JOptionPane.WARNING_MESSAGE);
+        return;
     }
 
-    private void fetchAppointments(String clientNameFilter) {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        DefaultTableModel model2 = (DefaultTableModel) recordsTable.getModel();
-        model.setRowCount(0); // Clear existing rows
-        model2.setRowCount(0);
-        
+    int confirm = JOptionPane.showConfirmDialog(this,
+        "Are you sure you want to delete this appointment?",
+        "Confirm Delete", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+    if (confirm == JOptionPane.YES_OPTION) {
         Connection conn = null;
         PreparedStatement pstmt = null;
-        ResultSet rs = null;
 
         try {
             conn = jdbcConnection.getConnection();
-            if (conn == null) {
-                System.err.println("Database connection failed in fetchAppointments.");
+            if (conn == null || !conn.isValid(5)) {
+                JOptionPane.showMessageDialog(this, "Failed to establish a valid database connection.", "Connection Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            String sql;
-            if (clientNameFilter != null && !clientNameFilter.isEmpty()) {
-                sql = "SELECT id, client_name, client_address, client_email, client_contact, "
-                    + "pet_name, pet_species, pet_breed, selected_services, schedule, "
-                    + "assigned_assistant, total_bill FROM appointments WHERE client_name LIKE ?";
-                pstmt = conn.prepareStatement(sql);
-                pstmt.setString(1, "%" + clientNameFilter + "%");
+            String sql = "DELETE FROM appointments WHERE id=?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, selectedAppointmentId);
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+    JOptionPane.showMessageDialog(this, "Appointment deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    
+    // Remove from jTable1 - find row with matching ID
+    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+    for (int i = 0; i < jTable1Model.getRowCount(); i++) {
+        int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column
+        if (rowId == selectedAppointmentId) {
+            jTable1Model.removeRow(i);
+            break;
+        }
+    }
+    
+    // Refresh recordsTable
+    loadRecordsTable();
+                
+                clearFormFields();
+                selectedAppointmentId = -1;
             } else {
-                sql = "SELECT id, client_name, client_address, client_email, client_contact, "
-                    + "pet_name, pet_species, pet_breed, selected_services, schedule, "
-                    + "assigned_assistant, total_bill FROM appointments";
-                pstmt = conn.prepareStatement(sql);
-            }     
-            rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                int id = rs.getInt("id"); // Optional
-                String clientName = rs.getString("client_name");
-                String address = rs.getString("client_address");
-                String email = rs.getString("client_email");
-                String contact = rs.getString("client_contact");
-
-                String petName = rs.getString("pet_name");
-                String species = rs.getString("pet_species");
-                String breed = rs.getString("pet_breed");
-
-                String services = rs.getString("selected_services");
-                String schedule = rs.getString("schedule");
-                String assistant = rs.getString("assigned_assistant");
-                double totalBill = rs.getDouble("total_bill");
-
-                // Adjust this based on your JTable structure.
-                // If your table includes a hidden ID column:
-                model.addRow(new Object[]{
-                    clientName, address, email, contact,
-                    petName, species, breed,
-                    services, schedule, assistant, totalBill, id
-                });
-                model2.addRow(new Object[]{
-                    clientName, address, email, contact,
-                    petName, species, breed,
-                    services, schedule, assistant, totalBill, id
-                });
-
-                // If your table does NOT include an ID column, use this instead:
-                // model.addRow(new Object[] {
-                //     clientName, address, email, contact,
-                //     petName, species, breed,
-                //     services, schedule, assistant, totalBill
-                // });
+                JOptionPane.showMessageDialog(this, "Failed to delete appointment.", "Error", JOptionPane.ERROR_MESSAGE);
             }
 
-            System.out.println("Appointments successfully fetched and loaded into JTable.");
-
         } catch (SQLException e) {
-            System.err.println("Error fetching appointments: " + e.getMessage());
-            JOptionPane.showMessageDialog(this,
-                    "Error fetching appointments: " + e.getMessage(),
-                    "Database Error",
-                    JOptionPane.ERROR_MESSAGE);
+            System.err.println("Error deleting appointment: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error deleting appointment: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         } finally {
-            jdbcConnection.closeConnection(conn, pstmt, rs);
+            jdbcConnection.closeConnection(conn, pstmt, null);
         }
-
-        // Optionally hide the last column (ID) if your table has it
-        // Uncomment this only if your JTable has the ID column as the last column:
-        /*
-    if (jTable1.getColumnCount() > 11) {
-        jTable1.getColumnModel().getColumn(11).setMinWidth(0);
-        jTable1.getColumnModel().getColumn(11).setMaxWidth(0);
-        jTable1.getColumnModel().getColumn(11).setWidth(0);
     }
-         */
-//        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-//        model.setRowCount(0);
-//
-//        Connection conn = null;
-//        PreparedStatement pstmt = null;
-//        ResultSet rs = null;
-//
-//        try {
-//            conn = jdbcConnection.getConnection();
-//            if (conn == null) {
-//                return; // Exit if connection failed
-//            }
-//
-//            String sql = "SELECT id, client_name, client_address, client_email, client_contact, "
-//                    + "pet_name, pet_species, pet_breed, selected_services, schedule, "
-//                    + "assigned_assistant, total_bill FROM appointments";
-//            pstmt = conn.prepareStatement(sql);
-//            rs = pstmt.executeQuery();
-//
-//            while (rs.next()) {
-//                // Retrieve data from ResultSet. Ensure column names match your database.
-//                int id = rs.getInt("id");
-//                String clientName = rs.getString("client_name");
-//                String address = rs.getString("client_address");
-//                String email = rs.getString("client_email");
-//                String contact = rs.getString("client_contact");
-//                String petName = rs.getString("pet_name");
-//                String species = rs.getString("pet_species");
-//                String breed = rs.getString("pet_breed");
-//                String services = rs.getString("selected_services");
-//                String schedule = rs.getString("schedule");
-//                String assistant = rs.getString("assigned_assistant");
-//                double totalBill = rs.getDouble("total_bill");
-//
-//                // Add data to table model. Ensure order matches the table columns defined in initComponents().
-//                model.addRow(new Object[]{
-//                    clientName, address, email, contact, // Client Info
-//                    petName, species, breed, // Pet Info
-//                    services, schedule, assistant, totalBill, // Service/Schedule/Bill Info
-//                    id // Hidden ID column
-//                });
-//            }
-//
-//            jTable1.getColumnModel().getColumn(11).setMinWidth(0);
-//            jTable1.getColumnModel().getColumn(11).setMaxWidth(0);
-//            jTable1.getColumnModel().getColumn(11).setWidth(0);
-//            System.out.println("Appointments fetched and displayed.");
-//
-//        } catch (SQLException e) {
-//            System.err.println("Error fetching appointments: " + e.getMessage());
-//            JOptionPane.showMessageDialog(this,
-//                    "Error fetching appointments: " + e.getMessage(),
-//                    "Database Error",
-//                    JOptionPane.ERROR_MESSAGE);
-//        } finally {
-//            jdbcConnection.closeConnection(conn, pstmt, rs);
-//        }
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+    // MODIFIED: Clear fields if they're loaded and user clicks a different row
+    int selectedRow = jTable1.getSelectedRow();
+    if (selectedRow >= 0) {
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        // Get ID from column 4 (hidden)
+        int clickedId = (int) model.getValueAt(selectedRow, 4);
+        
+        // If fields are loaded and user clicked a DIFFERENT row, clear the fields
+        if (fieldsLoaded && clickedId != selectedAppointmentId) {
+            clearFormFields();
+            fieldsLoaded = false;
+        }
+        
+        // Update selected ID
+        selectedAppointmentId = clickedId;
+        System.out.println("Selected appointment ID: " + selectedAppointmentId);
+        // Don't load fields here - wait for Edit button click
+    } else {
+        selectedAppointmentId = -1;
+        if (fieldsLoaded) {
+            clearFormFields();
+            fieldsLoaded = false;
+        }
     }
 
+    }//GEN-LAST:event_jTable1MouseClicked
+
+    private void JComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_JComboBoxActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_JComboBoxActionPerformed
+
+    private void recordsTableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsTableMouseClicked
+ if (evt.getClickCount() == 1) {
+        int row = recordsTable.getSelectedRow();
+        if (row != -1) {
+            // Optional: You can add single-click behavior here if needed
+            // For example, just showing a preview without switching panels
+        }
+    }
+    }//GEN-LAST:event_recordsTableMouseClicked
+
+    private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyReleased
+    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
+    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+    recordsTable.setRowSorter(sorter);
+
+    String search = jTextField1.getText();
+    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
+
+    }//GEN-LAST:event_jTextField1KeyReleased
+
+    private void jTextField1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField1MouseClicked
+        
+    }//GEN-LAST:event_jTextField1MouseClicked
+
+    private void recordsTableMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsTableMouseEntered
+        // TODO add your handling code here:
+    }//GEN-LAST:event_recordsTableMouseEntered
+
+    private void settingsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMousePressed
+        appointmentsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        settingsButton.setBackground(clickedcolor);
+        settingsButton.setForeground(white);       
+    }//GEN-LAST:event_settingsButtonMousePressed
+
+    private void settingsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMouseEntered
+        appointmentsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        settingsButton.setBackground(clickedcolor);
+        settingsButton.setForeground(white);
+    }//GEN-LAST:event_settingsButtonMouseEntered
+
+    private void recordsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMouseEntered
+        appointmentsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(clickedcolor);
+        settingsButton.setBackground(defaultcolor);
+        recordsButton.setForeground(white);
+    }//GEN-LAST:event_recordsButtonMouseEntered
+
+    private void appointmentsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseEntered
+        appointmentsButton.setBackground(clickedcolor);
+        recordsButton.setBackground(defaultcolor);
+        recordsButton.setBackground(defaultcolor);
+        settingsButton.setBackground(defaultcolor);
+        appointmentsButton.setForeground(white);
+    }//GEN-LAST:event_appointmentsButtonMouseEntered
+
+    private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox11ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox11ActionPerformed
+
+    private void jCheckBox14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox14ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox14ActionPerformed
+
+    public void setSelectedServices(String services) {
+        jTextArea1.setText(services);
+    }
+    private void clearFormFields() {
+        classNameTextfield.setText(""); 
+        addressTextfield.setText(""); 
+        emailTextfield.setText(""); 
+        contactTextfield.setText(""); 
+        petNameTextfield.setText(""); 
+        speciesTextField.setText(""); 
+        breedTextField.setText(""); 
+        
+        jTextArea1.setText("");
+        jDateChooser1.setDate(null); 
+        JComboBox.setSelectedItem(""); 
+        
+        totalBillTextfield.setText("");
+        selectedAppointmentId = -1;
+        jTable1.clearSelection();
+        fieldsLoaded = false; // Reset the flag when clearing fields
+}   
+
+    private void fetchAppointments(String search) throws SQLException {
+    table.setRowCount(0);
+    
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Failed to connect to database.");
+            return;
+        }
+        System.out.println("Connection established for fetchAppointments.");
+    
+        String sql = "SELECT client_name, client_address, client_email, client_contact, pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill, id FROM appointments";
+    
+        if (search != null && !search.trim().isEmpty()) {
+            sql += " WHERE client_name LIKE ? OR pet_name LIKE ?";
+        }
+        
+        pstmt = conn.prepareStatement(sql);
+        System.out.println("Prepared statement created: " + sql);
+        
+        if (search != null && !search.trim().isEmpty()) {
+            pstmt.setString(1, "%" + search + "%");
+            pstmt.setString(2, "%" + search + "%");
+        }
+        
+        rs = pstmt.executeQuery();
+        System.out.println("Query executed. ResultSet is valid: " + (rs != null));
+        
+        int rowCount = 0;
+       while (rs.next()) {
+    System.out.println("Fetched row: " + rs.getString("client_name") + ", " + rs.getString("pet_name"));
+    table.addRow(new Object[]{
+        rs.getString("client_name"),
+        rs.getString("pet_name"),
+        rs.getString("pet_species"),
+        rs.getString("selected_services"),
+        rs.getInt("id")
+    });
+}
+        System.out.println("Fetched " + rowCount + " rows.");
+        
+    } catch (SQLException e) {
+        System.err.println("Error fetching appointments: " + e.getMessage());
+        e.printStackTrace();  // Full stack trace for details
+    } finally {
+        jdbcConnection.closeConnection(conn, pstmt, rs);
+    }
+}
     /**
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-
-        try {
-            com.formdev.flatlaf.FlatLightLaf.setup();
-
-        } catch (Exception ex) {
-            Logger.getLogger(homeFrame.class.getName()).log(Level.SEVERE, "Failed to set FlatLaf Look and Feel", ex);
-
-            try {
-                UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-            } catch (Exception fallbackEx) {
-                Logger.getLogger(homeFrame.class.getName()).log(Level.SEVERE, "Failed to set cross-platform L&F", fallbackEx);
-            }
-        }
-
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new homeFrame().setVisible(true);
@@ -2355,6 +2840,7 @@ jTextArea1.setText(verticalServices);
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> JComboBox;
     private javax.swing.JPanel aboutPanel;
     private javax.swing.JPanel aboutUsPanel;
     private javax.swing.JButton addAppointmentButton;
@@ -2362,7 +2848,6 @@ jTextArea1.setText(verticalServices);
     private javax.swing.JTextField addressTextfield;
     private javax.swing.JButton appointmentsButton;
     private javax.swing.JPanel appointmentsPanel;
-    private javax.swing.JTextField assistantTextfield;
     private javax.swing.JButton boardingButton;
     private javax.swing.JPanel boardingServicesPanel;
     private javax.swing.JTextField breedTextField;
@@ -2452,8 +2937,6 @@ jTextArea1.setText(verticalServices);
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
-    private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JScrollPane jScrollPane6;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextArea jTextArea1;
     private javax.swing.JTextArea jTextArea2;

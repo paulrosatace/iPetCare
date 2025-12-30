@@ -6,9 +6,7 @@ package frames;
  */
 //package frames;
 
-//import JDBC.jdbcConnection;
-//import javax.swing.JOptionPane;
-//import java.sql.*;
+
 import JDBC.jdbcConnection;
 import frames.homeFrame;
 import javax.swing.JOptionPane;
@@ -29,9 +27,6 @@ public class logInFrame extends javax.swing.JFrame {
      */
     public logInFrame() {
         initComponents();
-//        email.setText("superadmin@testemail.com"); 
-//        password.setText("admin"); 
-//        jComboBox1.setSelectedItem("SuperAdmin");
      
     }
 
