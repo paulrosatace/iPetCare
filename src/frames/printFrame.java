@@ -25,23 +25,25 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     /**
      * Creates new form printFrame
      */
-   public printFrame(String clientName, String address, String contact, String petName, String species, String breed, String selectedServices, String formattedSchedule, String assistant, double totalBill) {
-        initComponents();  // Original NetBeans-generated init
+   public printFrame(String clientName, String address, String email, String contact, String petName, String species, String breed, String selectedServices, String formattedSchedule, String assistant, double totalBill) {
+    initComponents();
 
-        // Populate receipt (original, no code)
-        jTextArea1.append("Client Name: " + clientName + "\n");  // Adjust to your JTextArea name
-        jTextArea1.append("Address: " + address + "\n");
-        jTextArea1.append("Contact: " + contact + "\n");
-        jTextArea1.append("Pet Name: " + petName + "\n");
-        jTextArea1.append("Species: " + species + "\n");
-        jTextArea1.append("Breed: " + breed + "\n");
-        jTextArea1.append("Services: " + selectedServices + "\n");
-        jTextArea1.append("Schedule: " + formattedSchedule + "\n");
-        jTextArea1.append("Assistant: " + assistant + "\n");
-        jTextArea1.append("Total Bill: $" + String.format("%.2f", totalBill) + "\n");
-        setFieldsEditable(false); 
-        setVisible(true);
-    }
+    // Set all fields
+    jTextField2.setText(clientName);
+    jTextField3.setText(address);
+    jTextField4.setText(contact);
+    jTextField5.setText(petName);
+    jTextField6.setText(species);
+    jTextField7.setText(breed);
+    jTextArea1.setText(selectedServices);
+    jTextField8.setText(formattedSchedule);
+    jTextField10.setText(email);
+    jTextField11.setText(assistant);
+    jTextField9.setText(String.format("₱%.2f", totalBill));
+    
+    setFieldsEditable(false);
+    setVisible(true);
+}
 
     
     private void setFieldsEditable(boolean editable) {
@@ -137,8 +139,10 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextField9 = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
         jTextField8 = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
+        jLabel10 = new javax.swing.JLabel();
+        jTextField10 = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        jTextField11 = new javax.swing.JTextField();
 
         jTextField1.setText("jTextField1");
 
@@ -169,7 +173,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
                 .addContainerGap())
         );
 
-        jPanel2.setBackground(new java.awt.Color(239, 238, 234));
+        jPanel2.setBackground(new java.awt.Color(255, 255, 255));
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
@@ -185,19 +189,24 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jPanel2.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 20, 158, -1));
 
         jLabel5.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel5.setText("Pet Species:");
-        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 280, -1, -1));
+        jLabel5.setText("Species:");
+        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 280, -1, -1));
 
         jTextField6.setEditable(false);
         jTextField6.setBackground(new java.awt.Color(239, 238, 234));
         jTextField6.setBorder(null);
         jTextField6.setFocusable(false);
         jTextField6.setPreferredSize(new java.awt.Dimension(200, 30));
-        jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 270, 157, -1));
+        jTextField6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField6ActionPerformed(evt);
+            }
+        });
+        jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 280, 157, -1));
 
         jLabel2.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel2.setText("Address: ");
-        jPanel2.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 350, 68, -1));
+        jPanel2.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 68, -1));
 
         jTextField3.setEditable(false);
         jTextField3.setBackground(new java.awt.Color(239, 238, 234));
@@ -209,11 +218,11 @@ public class printFrame extends javax.swing.JFrame implements Printable{
                 jTextField3ActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 340, 156, -1));
+        jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 60, 156, -1));
 
         jLabel4.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel4.setText("Pet Name:");
-        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 150, -1, -1));
+        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 190, -1, -1));
 
         jTextField5.setEditable(false);
         jTextField5.setBackground(new java.awt.Color(239, 238, 234));
@@ -225,22 +234,27 @@ public class printFrame extends javax.swing.JFrame implements Printable{
                 jTextField5ActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField5, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, 157, -1));
+        jPanel2.add(jTextField5, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 180, 157, -1));
 
         jTextField4.setEditable(false);
         jTextField4.setBackground(new java.awt.Color(239, 238, 234));
         jTextField4.setBorder(null);
         jTextField4.setFocusable(false);
         jTextField4.setPreferredSize(new java.awt.Dimension(200, 30));
-        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 80, 158, -1));
+        jTextField4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField4ActionPerformed(evt);
+            }
+        });
+        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 100, 158, -1));
 
         jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel3.setText("Contact No.");
-        jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 90, -1, -1));
+        jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, -1, -1));
 
         jLabel6.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel6.setText("Pet Breed:");
-        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 210, -1, -1));
+        jLabel6.setText("Breed:");
+        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 240, -1, -1));
 
         jTextField7.setEditable(false);
         jTextField7.setBackground(new java.awt.Color(239, 238, 234));
@@ -252,11 +266,11 @@ public class printFrame extends javax.swing.JFrame implements Printable{
                 jTextField7ActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 200, 158, -1));
+        jPanel2.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, 158, -1));
 
         jLabel7.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel7.setText("Services:");
-        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 0, -1, -1));
+        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 20, -1, -1));
 
         jTextArea1.setEditable(false);
         jTextArea1.setBackground(new java.awt.Color(239, 238, 234));
@@ -264,12 +278,12 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextArea1.setRows(5);
         jTextArea1.setBorder(null);
         jTextArea1.setFocusable(false);
-        jPanel2.add(jTextArea1, new org.netbeans.lib.awtextra.AbsoluteConstraints(250, 30, 200, 280));
+        jPanel2.add(jTextArea1, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 40, 180, 290));
 
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel9.setText("Total Bill:");
-        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 470, -1, -1));
+        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 420, -1, -1));
 
         jTextField9.setEditable(false);
         jTextField9.setBackground(new java.awt.Color(239, 238, 234));
@@ -283,24 +297,36 @@ public class printFrame extends javax.swing.JFrame implements Printable{
                 jTextField9ActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField9, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 470, 140, -1));
+        jPanel2.add(jTextField9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 410, 160, -1));
 
         jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel8.setText("Schedule:");
-        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 420, -1, -1));
+        jLabel8.setText("Assistant:");
+        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, -1, -1));
 
         jTextField8.setEditable(false);
         jTextField8.setBackground(new java.awt.Color(239, 238, 234));
         jTextField8.setBorder(null);
         jTextField8.setFocusable(false);
         jTextField8.setPreferredSize(new java.awt.Dimension(200, 30));
-        jPanel2.add(jTextField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 410, 157, -1));
+        jPanel2.add(jTextField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 370, 157, -1));
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane1.setViewportView(jTextArea2);
+        jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel10.setText("Email:");
+        jPanel2.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 150, -1, -1));
 
-        jPanel2.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(254, 340, 190, -1));
+        jTextField10.setEditable(false);
+        jTextField10.setBackground(new java.awt.Color(239, 238, 234));
+        jTextField10.setBorder(null);
+        jPanel2.add(jTextField10, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, 160, 30));
+
+        jLabel12.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel12.setText("Schedule:");
+        jPanel2.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 370, -1, -1));
+
+        jTextField11.setEditable(false);
+        jTextField11.setBackground(new java.awt.Color(239, 238, 234));
+        jTextField11.setBorder(null);
+        jPanel2.add(jTextField11, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 330, 160, 30));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -321,13 +347,13 @@ public class printFrame extends javax.swing.JFrame implements Printable{
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 557, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(89, 89, 89))
         );
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
-        setSize(new java.awt.Dimension(476, 617));
+        setSize(new java.awt.Dimension(476, 547));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
@@ -346,6 +372,14 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     private void jTextField3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField3ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextField3ActionPerformed
+
+    private void jTextField4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField4ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField4ActionPerformed
+
+    private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTextField6ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -384,7 +418,9 @@ public class printFrame extends javax.swing.JFrame implements Printable{
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -396,10 +432,10 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JScrollPane jScrollPane1;
     public javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField10;
+    private javax.swing.JTextField jTextField11;
     public javax.swing.JTextField jTextField2;
     public javax.swing.JTextField jTextField3;
     public javax.swing.JTextField jTextField4;

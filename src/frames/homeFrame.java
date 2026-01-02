@@ -10,6 +10,7 @@ import JDBC.jdbcConnection;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.sql.ResultSetMetaData;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -55,9 +56,12 @@ public class homeFrame extends javax.swing.JFrame {
     private javax.swing.JTextField txtTime;
     private javax.swing.JComboBox<String> cmbStatus;
     private String currentUserRole;
-private int selectedAppointmentId = -1;
-private boolean fieldsLoaded = false; // Track if fields are currently loaded
-
+    private int selectedAppointmentId = -1;
+    private boolean fieldsLoaded = false; 
+    private int lastAddedAppointmentId = -1;
+    private List<JCheckBox> serviceCheckboxes = new ArrayList<>();
+    
+    
 Color defaultcolor = new Color(0, 0, 0);
     Color clickedcolor = new Color(47, 110, 138);
     Color white = new Color(255, 255, 255);
@@ -68,35 +72,57 @@ Color defaultcolor = new Color(0, 0, 0);
     private void setupServicesColumnRenderer() {
         recordsTable.getColumnModel().getColumn(6).setCellRenderer(new MultiLineCellRenderer());
     }
-
     
     public homeFrame() {
-    initComponents();
-    
-    buttons.add(appointmentsButton);
-        buttons.add(recordsButton);
-        buttons.add(settingsButton);
-        active = appointmentsButton;
-        active = recordsButton;
-        active = settingsButton;
-        
-        setupRecordSearch();
-        setupRecordDoubleClick();
-        setupDateColumnRenderer();
-        setupServicesColumnRenderer();
-        disableDateChooserTyping();
-        disableRecordsTableEditing();
-        
-        txtAppointmentId = new javax.swing.JTextField();
-        txtTime = new javax.swing.JTextField();
-        cmbStatus = new javax.swing.JComboBox<>();
-        
-        cards = (CardLayout) jPanel10.getLayout();
-        recordsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
-        recordsTable.setDefaultEditor(Object.class, null);
+        initComponents();
 
-        JComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"","Billy","Abel","Bob","Caleb","Doris","Eddie"}));
+            buttons.add(appointmentsButton);
+            buttons.add(recordsButton);
+            buttons.add(settingsButton);
+            active = appointmentsButton;
+            active = recordsButton;
+            active = settingsButton;
 
+            setupRecordSearch();
+            setupRecordDoubleClick();
+            setupDateColumnRenderer();
+            setupServicesColumnRenderer();
+            disableDateChooserTyping();
+            disableRecordsTableEditing();
+
+        recordsPanel.revalidate();
+        recordsPanel.repaint();
+
+
+        serviceCheckboxes.addAll(Arrays.asList(
+        jCheckBox1, jCheckBox2, jCheckBox3, jCheckBox4, jCheckBox5, jCheckBox6, jCheckBox7,
+        jCheckBox8, jCheckBox9, jCheckBox10, jCheckBox11, jCheckBox12, jCheckBox13, jCheckBox14,
+        jCheckBox15, jCheckBox16, jCheckBox17, jCheckBox18, jCheckBox19, jCheckBox20, jCheckBox21,
+        jCheckBox22, jCheckBox23, jCheckBox24, jCheckBox25
+        ));
+
+            txtAppointmentId = new javax.swing.JTextField();
+            txtTime = new javax.swing.JTextField();
+            cmbStatus = new javax.swing.JComboBox<>();
+
+            cards = (CardLayout) jPanel10.getLayout();
+            recordsTable.getColumnModel().getColumn(0).setPreferredWidth(50);
+            recordsTable.setDefaultEditor(Object.class, null);
+
+            JComboBox.setModel(new DefaultComboBoxModel<>(new String[]{"Billy","Abel","Bob","Caleb","Doris","Eddie"}));
+    JComboBox.setSelectedIndex(-1);
+    JComboBox.setRenderer(new DefaultListCellRenderer() {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, 
+                int index, boolean isSelected, boolean cellHasFocus) {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            if (index == -1 && value == null) {
+                setText("");
+            }
+            return this;
+        }
+    });
+        
         this.currentUserRole = "Guest";
         System.out.println("Home frame initialized without a specific role. Defaulting to: " + this.currentUserRole);
 
@@ -125,16 +151,17 @@ Color defaultcolor = new Color(0, 0, 0);
     public boolean isCellEditable(int row, int column) {
         return false;
     }
-};
-jTable1.setModel(jTable1Model);
+    };
+    jTable1.setModel(jTable1Model);
 
-// Hide only the ID column (index 4)
-jTable1.getColumnModel().getColumn(4).setMinWidth(0);
-jTable1.getColumnModel().getColumn(4).setMaxWidth(0);
-jTable1.getColumnModel().getColumn(4).setPreferredWidth(0);
+    // Hide only the ID column (index 4)
+    jTable1.getColumnModel().getColumn(4).setMinWidth(0);
+    jTable1.getColumnModel().getColumn(4).setMaxWidth(0);
+    jTable1.getColumnModel().getColumn(4).setPreferredWidth(0);
+    JComboBox.setSelectedIndex(-1); // Add this after setModel
 
-// Load all appointments into jTable1
-loadJTable1();
+    // Load all appointments into jTable1
+    loadJTable1();
         
         DefaultTableModel recordsModel = new DefaultTableModel(
             new Object[][]{},
@@ -148,6 +175,35 @@ loadJTable1();
 
         recordsTable.setModel(recordsModel);
         loadRecordsTable();
+        
+        recordsSorter = new TableRowSorter<>(recordsTable.getModel());
+        recordsTable.setRowSorter(recordsSorter);
+    
+    // Update DocumentListener to use global sorter
+    jTextField1.getDocument().addDocumentListener(new DocumentListener() {
+        private void search() {
+            String text = jTextField1.getText();
+            if (text.trim().isEmpty()) {
+                recordsSorter.setRowFilter(null);
+            } else {
+                recordsSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+            }
+        }
+        
+        public void insertUpdate(javax.swing.event.DocumentEvent e) { search(); }
+        public void removeUpdate(javax.swing.event.DocumentEvent e) { search(); }
+        public void changedUpdate(javax.swing.event.DocumentEvent e) { search(); }
+    });
+        
+
+            // Initialize button appearance
+    appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
+    recordsButton.setBackground(new java.awt.Color(0, 0, 0));
+    settingsButton.setBackground(new java.awt.Color(0, 0, 0));
+
+    // Highlight appointments button by default
+    highlightButtonBorder(appointmentsButton);
+    records();
     }
 
     public homeFrame(String userRole) {
@@ -172,27 +228,70 @@ loadJTable1();
     public void changedUpdate(DocumentEvent e) {
         // Just filter, don't fetch
     }
-});
+    });
 
-this.currentUserRole = userRole;
-System.out.println("User logged in with role: " + this.currentUserRole);
-customizeUIBasedOnRole();
+    this.currentUserRole = userRole;
+    System.out.println("User logged in with role: " + this.currentUserRole);
+    customizeUIBasedOnRole();
 
-// Load all appointments
-loadJTable1();
+    // Load all appointments
+    loadJTable1();
 
-jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-    @Override
-    public void valueChanged(ListSelectionEvent e) {
-        if (!e.getValueIsAdjusting()) {
-            // Selection changed - do nothing, wait for Edit button
+    jTable1.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+        @Override
+        public void valueChanged(ListSelectionEvent e) {
+            if (!e.getValueIsAdjusting()) {
+                // Selection changed - do nothing, wait for Edit button
+            }
         }
+    });
+    loadRecordsTable(); 
+    records();
     }
-});
 
-        loadRecordsTable(); 
+    private void uncheckAllServices() {
+    for (JCheckBox checkbox : serviceCheckboxes) {
+        checkbox.setSelected(false);
     }
+}
+    public void records() {
+    // Remove any hardcoded height restrictions
+    jScrollPane2.setPreferredSize(null);
+    jScrollPane2.setMinimumSize(new java.awt.Dimension(0, 0));
+    jScrollPane2.setMaximumSize(null);
 
+    // Force proper scrolling behavior
+    jScrollPane2.setVerticalScrollBarPolicy(
+        javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+    );
+    jScrollPane2.setHorizontalScrollBarPolicy(
+        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+    );
+    
+    // Ensure table fills viewport
+    recordsTable.setFillsViewportHeight(true);
+}
+
+    
+    
+    
+    private void highlightButtonBorder(javax.swing.JButton targetButton) {
+    // Reset all buttons to default
+    appointmentsButton.setBorder(null);
+    recordsButton.setBorder(null);
+    settingsButton.setBorder(null);
+    
+    appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
+    recordsButton.setBackground(new java.awt.Color(0, 0, 0));
+    settingsButton.setBackground(new java.awt.Color(0, 0, 0));
+    
+    // Highlight the target button with border
+    targetButton.setBorder(javax.swing.BorderFactory.createLineBorder(
+        new java.awt.Color(0, 153, 153), 2));
+    targetButton.setBackground(new java.awt.Color(0, 0, 0));
+}
+    
+    
     private void disableRecordsTableEditing() {
       recordsTable.setDefaultEditor(Object.class, null);
     }
@@ -235,11 +334,11 @@ private void loadJTable1() {
         
         while (rs.next()) {
             jTable1Model.addRow(new Object[]{
-                rs.getString("client_name"),  // Client Name (column 0)
-                rs.getString("pet_name"),      // Pet Name (column 1)
-                rs.getString("pet_species"),   // Species (column 2)
+                rs.getString("client_name"),       // Client Name (column 0)
+                rs.getString("pet_name"),          // Pet Name (column 1)
+                rs.getString("pet_species"),       // Species (column 2)
                 rs.getString("selected_services"), // Services (column 3)
-                rs.getInt("id")                // ID (column 4 - hidden)
+                rs.getInt("id")                    // ID (column 4 - hidden)
             });
         }
         
@@ -251,6 +350,7 @@ private void loadJTable1() {
         jdbcConnection.closeConnection(conn, pstmt, rs);
     }
 }
+
     private void openAppointmentFromRecords() {
     int row = recordsTable.getSelectedRow();
         if (row == -1) return;
@@ -387,25 +487,47 @@ private void loadFieldsFromDatabase(int id) {
             classNameTextfield.setText(rs.getString("client_name"));
             addressTextfield.setText(rs.getString("client_address"));
             emailTextfield.setText(rs.getString("client_email"));
-            contactTextfield.setText(rs.getString("client_contact"));
+            
+            // Preserve 11-digit contact
+            String contact = rs.getString("client_contact");
+            contactTextfield.setText(contact);
+            
             petNameTextfield.setText(rs.getString("pet_name"));
             speciesTextField.setText(rs.getString("pet_species"));
             breedTextField.setText(rs.getString("pet_breed"));
-            jTextArea1.setText(rs.getString("selected_services"));
-            totalBillTextfield.setText(rs.getString("total_bill"));
             
-            // Parse and set date
+            String servicesFromDB = rs.getString("selected_services");
+            jTextArea1.setText(servicesFromDB);
+            
+            // Parse and check service checkboxes based on loaded services
+            uncheckAllServices(); // First uncheck all
+            String[] serviceLines = servicesFromDB.split("\n");
+            for (String line : serviceLines) {
+                String serviceName = line.split(" - ")[0].trim();
+                for (JCheckBox checkbox : serviceCheckboxes) {
+                    if (checkbox.getText().equals(serviceName)) {
+                        checkbox.setSelected(true);
+                        break;
+                    }
+                }
+            }
+            
+            String totalBillStr = rs.getString("total_bill");
+            try {
+                double bill = Double.parseDouble(totalBillStr);
+                totalBillTextfield.setText(String.format("₱%.2f", bill));
+            } catch (NumberFormatException ex) {
+                totalBillTextfield.setText("₱0.00");
+            }
+            
             try {
                 Date date = new SimpleDateFormat("MM/dd/yyyy").parse(rs.getString("schedule"));
                 jDateChooser1.setDate(date);
             } catch (ParseException ex) {
-                ex.printStackTrace();
                 jDateChooser1.setDate(null);
             }
             
             JComboBox.setSelectedItem(rs.getString("assigned_assistant"));
-            
-            // Set flag to indicate fields are loaded
             fieldsLoaded = true;
         }
     } catch (Exception e) {
@@ -454,20 +576,14 @@ private void loadFieldsFromDatabase(int id) {
     private final Color COLOR_INACTIVE = new Color(51, 51, 51); // Dark grey background
     private final Color COLOR_TEXT = Color.WHITE;
 
-    private void switchTab(javax.swing.JPanel targetPanel, javax.swing.JButton activeBtn) {
-     appointmentsPanel.setVisible(false);
-        recordsPanel.setVisible(false);
-        settingsPanel.setVisible(false);
-        targetPanel.setVisible(true);
-        javax.swing.JButton[] navButtons = {appointmentsButton, recordsButton, settingsButton};
-        for (javax.swing.JButton btn : navButtons) {
-            btn.setBackground(COLOR_INACTIVE);
-            btn.setForeground(COLOR_TEXT);
-            btn.setOpaque(true);
-            btn.setBorderPainted(false);
-        }
-        activeBtn.setBackground(COLOR_ACTIVE);
-    }
+   private void switchTab(javax.swing.JPanel targetPanel, javax.swing.JButton activeBtn) {
+    appointmentsPanel.setVisible(false);
+    recordsPanel.setVisible(false);
+    settingsPanel.setVisible(false);
+    targetPanel.setVisible(true);
+    
+    highlightButtonBorder(activeBtn);
+}
     
   private void configureJTable1Columns() {
       int[] visibleColumns = {0, 4, 5, 7};
@@ -545,62 +661,154 @@ class MultiLineCellRenderer extends JTextArea
 }
 
     private void loadRecordsTable(String filter) {
-     DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
-        recordsModel.setRowCount(0);
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            conn = jdbcConnection.getConnection();
-            if (conn == null) {
-                System.err.println("Failed to connect to database for recordsTable.");
-                return;
-            }
-            System.out.println("Database connection established.");
-            String sql = "SELECT id, client_name AS Owner, client_address AS Address, client_email AS Email, client_contact AS Number, pet_name AS `Pet Name`, pet_species AS Species, pet_breed AS Breed, selected_services AS Services, schedule AS `Date`, assigned_assistant AS Assistant, total_bill AS `Total Bill`, 'Pending' AS Status FROM appointments";
-            if (filter != null && !filter.trim().isEmpty()) {
-                sql += " WHERE client_name LIKE ? OR pet_name LIKE ?";
-            }
-            System.out.println("SQL Query: " + sql);
-            pstmt = conn.prepareStatement(sql);
-            if (filter != null && !filter.trim().isEmpty()) {
-                pstmt.setString(1, "%" + filter + "%");
-                pstmt.setString(2, "%" + filter + "%");
-            }
-            rs = pstmt.executeQuery();
-            if (rs == null) {
-                System.err.println("ResultSet is null. Query execution failed.");
-                return;
-            }
-            while (rs.next()) {
-                String dateStr = rs.getString("Date");
-                recordsModel.addRow(new Object[]{
-                    rs.getInt("id"),
-                    rs.getString("Owner"),
-                    rs.getString("Address"),
-                    rs.getString("Email"),
-                    rs.getString("Number"),
-                    rs.getString("Pet Name"),
-                    rs.getString("Species"),
-                    rs.getString("Breed"),
-                    rs.getString("Services"),
-                    dateStr,
-                    rs.getString("Assistant"),
-                    rs.getString("Total Bill"),
-                    rs.getString("Status")
-                });
-            }
-            System.out.println("Records table loaded successfully. Row count: " + recordsModel.getRowCount());
-        } catch (SQLException e) {
-            System.err.println("Error loading records table: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            jdbcConnection.closeConnection(conn, pstmt, rs);
+    DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
+    recordsModel.setRowCount(0);                 // wipe old data first
+
+    Connection conn = null;
+    PreparedStatement pstmt = null;
+    ResultSet rs = null;
+
+    try {
+        conn = jdbcConnection.getConnection();
+        if (conn == null) {
+            System.err.println("Failed to connect to the database.");
+            return;
         }
+
+        /* --------------------------------------------------------------
+         *  SELECT … ORDER BY id ASC   <-- newest rows end up at the *bottom*
+         *  -------------------------------------------------------------- */
+        String sql = "SELECT id, " +                     // <-- hidden primary key (first column)
+                     "client_name AS Owner, " +
+                     "client_address AS Address, " +
+                     "client_email AS Email, " +
+                     "client_contact AS Number, " +
+                     "pet_name AS `Pet Name`, " +
+                     "pet_species AS Species, " +
+                     "pet_breed AS Breed, " +
+                     "selected_services AS Services, " +
+                     "schedule AS `Date`, " +
+                     "assigned_assistant AS Assistant, " +
+                     "total_bill AS `Total Bill`, " +
+                     "'Pending' AS Status " +
+                     "FROM appointments ORDER BY id ASC";
+
+        // Apply a text filter only when filter is non‑empty
+        if (filter != null && !filter.trim().isEmpty()) {
+            sql += " WHERE client_name LIKE ? OR pet_name LIKE ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, "%" + filter + "%");
+            pstmt.setString(2, "%" + filter + "%");
+        } else {
+            pstmt = conn.prepareStatement(sql);
+        }
+
+        rs = pstmt.executeQuery();
+
+        while (rs.next()) {
+            String dateStr      = rs.getString("Date");
+            double totalBill    = rs.getDouble("Total Bill");
+            String formattedBill = String.format("₱%.2f", totalBill);
+
+            recordsModel.addRow(new Object[]{
+                rs.getInt("id"),                 // 0 – hidden ID (will be hidden later)
+                rs.getString("Owner"),           // 1 – visible column 0
+                rs.getString("Address"),         // 2 – visible column 1
+                rs.getString("Email"),           // 3 – visible column 2
+                rs.getString("Number"),          // 4 – visible column 3
+                rs.getString("Pet Name"),        // 5 – visible column 4
+                rs.getString("Species"),         // 6 – visible column 5
+                rs.getString("Breed"),           // 7 – visible column 6
+                rs.getString("Services"),        // 8 – visible column 7
+                dateStr,                         // 9 – visible column 8
+                rs.getString("Assistant"),       //10 – visible column 9
+                formattedBill,                   //11 – visible column 10
+                rs.getString("Status")           //12 – visible column 11
+            });
+        }
+
+        recordsTable.setModel(recordsModel);
+    
+    // UPDATED: Reset sorter with new model and apply current search filter
+    recordsSorter = new TableRowSorter<>(recordsModel);
+    recordsTable.setRowSorter(recordsSorter);
+    
+    String searchText = jTextField1.getText().trim();
+    if (searchText.isEmpty()) {
+        recordsSorter.setRowFilter(null);  // Show all rows
+    } else {
+        recordsSorter.setRowFilter(RowFilter.regexFilter("(?i)" + searchText));  // Apply current search
+    }
+        
+        
+        /* --------------------------------------------------------------
+         *  Hide the ID column (index 0) **after** rows have been added.
+         *  This keeps the column‑indices in sync with the data we just added.
+         *  -------------------------------------------------------------- */
         recordsTable.getColumnModel().getColumn(0).setMinWidth(0);
         recordsTable.getColumnModel().getColumn(0).setMaxWidth(0);
         recordsTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+
+        /* --------------------------------------------------------------
+         *  Refresh the UI so Swing draws the freshly‑added rows.
+         *  -------------------------------------------------------------- */
+//        recordsTable.revalidate();   // forces layout recalculation
+//        recordsTable.repaint();      // forces paint
+            // forces complete redraw
+
+            
+            recordsModel.fireTableDataChanged();
+recordsTable.revalidate();
+recordsTable.repaint();
+
+// Force scroll pane to recalculate
+jScrollPane2.revalidate();
+jScrollPane2.repaint();
+jScrollPane2.getViewport().revalidate();
+        /* --------------------------------------------------------------
+         *  **Scroll to the very last row** (the newest appointment) so the
+         *  row is definitely inside the visible viewport.
+         *  -------------------------------------------------------------- */
+//       SwingUtilities.invokeLater(() -> {
+//    if (recordsTable.getRowCount() > 0) {
+//        int lastRow = recordsTable.getRowCount() - 1;
+//        recordsTable.setRowSelectionInterval(lastRow, lastRow);
+//        recordsTable.scrollRectToVisible(recordsTable.getCellRect(lastRow, 0, true)
+//        );
+//    }
+//});
+       
+       SwingUtilities.invokeLater(() -> {
+    SwingUtilities.invokeLater(() -> { // Double invokeLater for safety
+        if (recordsTable.getRowCount() > 0) {
+            int lastRow = recordsTable.getRowCount() - 1;
+            
+            // Select the row
+            recordsTable.setRowSelectionInterval(lastRow, lastRow);
+            
+            // Get the rectangle for the last row
+            Rectangle rect = recordsTable.getCellRect(lastRow, 0, true);
+            
+            // Adjust to ensure we scroll to bottom
+            rect.y += rect.height * 2;
+            
+            // Scroll to visible
+            recordsTable.scrollRectToVisible(rect);
+            
+            // Alternative: Force scroll to bottom of scroll pane
+            JScrollBar vertical = jScrollPane2.getVerticalScrollBar();
+            vertical.setValue(vertical.getMaximum());
+        }
+    });
+});
+
+    } catch (SQLException e) {
+        System.err.println("Error loading records table: " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        jdbcConnection.closeConnection(conn, pstmt, rs);
     }
+}
 
 private void loadAppointmentForEditing(String Id) {
     try {
@@ -639,11 +847,6 @@ private void loadAppointmentForEditing(String Id) {
         recordsButton = new javax.swing.JButton();
         settingsButton = new javax.swing.JButton();
         jPanel10 = new javax.swing.JPanel();
-        recordsPanel = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        recordsTable = new javax.swing.JTable();
-        jLabel1 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
         settingsPanel = new javax.swing.JPanel();
         aboutPanel = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -730,7 +933,6 @@ private void loadAppointmentForEditing(String Id) {
         jPanel6 = new javax.swing.JPanel();
         jLabel22 = new javax.swing.JLabel();
         totalBillTextfield = new javax.swing.JTextField();
-        jLabel23 = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
         jLabel13 = new javax.swing.JLabel();
@@ -746,6 +948,12 @@ private void loadAppointmentForEditing(String Id) {
         jLabel12 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         contactTextfield = new javax.swing.JTextField();
+        recordsPanel = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        recordsTable = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        appointmentCount = new javax.swing.JLabel();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -755,9 +963,8 @@ private void loadAppointmentForEditing(String Id) {
         jCheckBoxMenuItem1.setText("jCheckBoxMenuItem1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setMaximumSize(new java.awt.Dimension(1300, 800));
         setMinimumSize(new java.awt.Dimension(1000, 700));
-        setPreferredSize(new java.awt.Dimension(1400, 900));
+        setPreferredSize(new java.awt.Dimension(1500, 1000));
         setResizable(false);
 
         jPanel1.setEnabled(false);
@@ -780,7 +987,7 @@ private void loadAppointmentForEditing(String Id) {
         appointmentsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         appointmentsButton.setForeground(new java.awt.Color(255, 255, 255));
         appointmentsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/appointments.png"))); // NOI18N
-        appointmentsButton.setText("Appointments");
+        appointmentsButton.setText("Appointments   ");
         appointmentsButton.setBorder(null);
         appointmentsButton.setSelected(true);
         appointmentsButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -805,7 +1012,7 @@ private void loadAppointmentForEditing(String Id) {
         recordsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         recordsButton.setForeground(new java.awt.Color(255, 255, 255));
         recordsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/records.png"))); // NOI18N
-        recordsButton.setText("Records");
+        recordsButton.setText("Records   ");
         recordsButton.setBorder(null);
         recordsButton.setSelected(true);
         recordsButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -830,7 +1037,7 @@ private void loadAppointmentForEditing(String Id) {
         settingsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         settingsButton.setForeground(new java.awt.Color(255, 255, 255));
         settingsButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/settings.png"))); // NOI18N
-        settingsButton.setText("Settings");
+        settingsButton.setText("Settings   ");
         settingsButton.setBorder(null);
         settingsButton.setSelected(true);
         settingsButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -854,92 +1061,6 @@ private void loadAppointmentForEditing(String Id) {
         jPanel10.setMinimumSize(new java.awt.Dimension(1300, 700));
         jPanel10.setPreferredSize(new java.awt.Dimension(1300, 700));
         jPanel10.setLayout(new java.awt.CardLayout());
-
-        recordsPanel.setBackground(new java.awt.Color(241, 239, 236));
-        recordsPanel.setMaximumSize(new java.awt.Dimension(1400, 700));
-        recordsPanel.setPreferredSize(new java.awt.Dimension(1450, 700));
-
-        recordsTable.setAutoCreateRowSorter(true);
-        recordsTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null},
-                {null, null, null, null, null, null, null, null, null, null, null}
-            },
-            new String [] {
-                "Owner", "Address", "Email", "Number", "Pet Name", "Species", "Breed", "Services", "Date", "Assistant", "Total Bill"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false, false, false, false, false, false, false, false, false, false
-            };
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
-            }
-        });
-        recordsTable.setMaximumSize(new java.awt.Dimension(700, 500));
-        recordsTable.setMinimumSize(new java.awt.Dimension(700, 500));
-        recordsTable.setPreferredSize(new java.awt.Dimension(400, 500));
-        recordsTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                recordsTableMouseClicked(evt);
-            }
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                recordsTableMouseEntered(evt);
-            }
-        });
-        jScrollPane2.setViewportView(recordsTable);
-
-        jLabel1.setText("Search:");
-
-        jTextField1.setPreferredSize(new java.awt.Dimension(64, 24));
-        jTextField1.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                jTextField1MouseClicked(evt);
-            }
-        });
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
-            }
-        });
-        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextField1KeyReleased(evt);
-            }
-        });
-
-        javax.swing.GroupLayout recordsPanelLayout = new javax.swing.GroupLayout(recordsPanel);
-        recordsPanel.setLayout(recordsPanelLayout);
-        recordsPanelLayout.setHorizontalGroup(
-            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(recordsPanelLayout.createSequentialGroup()
-                .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(recordsPanelLayout.createSequentialGroup()
-                        .addGap(43, 43, 43)
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(recordsPanelLayout.createSequentialGroup()
-                        .addGap(35, 35, 35)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1344, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(648, 648, 648))
-        );
-        recordsPanelLayout.setVerticalGroup(
-            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(recordsPanelLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 594, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(89, Short.MAX_VALUE))
-        );
-
-        jPanel10.add(recordsPanel, "card4");
 
         settingsPanel.setPreferredSize(new java.awt.Dimension(1400, 969));
 
@@ -980,7 +1101,7 @@ private void loadAppointmentForEditing(String Id) {
         jButton7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton7.setForeground(new java.awt.Color(255, 255, 255));
         jButton7.setText("About Us");
-        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102)));
+        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102), 2));
         jButton7.setPreferredSize(new java.awt.Dimension(130, 100));
         jButton7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -992,7 +1113,7 @@ private void loadAppointmentForEditing(String Id) {
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Log out");
-        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 153, 153)));
+        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 153, 153), 2));
         jButton1.setPreferredSize(new java.awt.Dimension(130, 100));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1005,28 +1126,26 @@ private void loadAppointmentForEditing(String Id) {
         jPanel11Layout.setHorizontalGroup(
             jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel11Layout.createSequentialGroup()
-                .addGap(102, 102, 102)
-                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(117, Short.MAX_VALUE))
+                .addGap(55, 55, 55)
+                .addGroup(jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(39, Short.MAX_VALUE))
         );
         jPanel11Layout.setVerticalGroup(
             jPanel11Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel11Layout.createSequentialGroup()
-                .addGap(30, 30, 30)
+                .addGap(47, 47, 47)
                 .addComponent(jButton7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(52, 52, 52)
+                .addGap(42, 42, 42)
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         aboutUsPanel.setBackground(new java.awt.Color(102, 102, 102));
-        aboutUsPanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel14.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
         jLabel14.setText("MISSION");
-        aboutUsPanel.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 40, 162, -1));
 
         jTextArea2.setEditable(false);
         jTextArea2.setBackground(new java.awt.Color(153, 153, 153));
@@ -1034,41 +1153,69 @@ private void loadAppointmentForEditing(String Id) {
         jTextArea2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jTextArea2.setRows(5);
         jTextArea2.setText("Our vision is to be the most reliable and innovative digital pet care solution,\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\nempowering pet owners and professionals through smart tools, seamless experiences, and a shared love for animals.\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care.  \nWe strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\n\n");
-        aboutUsPanel.add(jTextArea2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 290, -1, 140));
 
         jLabel17.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
         jLabel17.setText("VISION");
-        aboutUsPanel.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(42, 235, 162, -1));
 
         jTextArea3.setBackground(new java.awt.Color(153, 153, 153));
         jTextArea3.setColumns(20);
         jTextArea3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jTextArea3.setRows(5);
         jTextArea3.setText("At iPETCARE, our mission is to deliver compassionate,  convenient, and \nhigh-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling \nappointments to tracking medical records.");
-        aboutUsPanel.add(jTextArea3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 80, 730, -1));
+
+        javax.swing.GroupLayout aboutUsPanelLayout = new javax.swing.GroupLayout(aboutUsPanel);
+        aboutUsPanel.setLayout(aboutUsPanelLayout);
+        aboutUsPanelLayout.setHorizontalGroup(
+            aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jTextArea3, javax.swing.GroupLayout.PREFERRED_SIZE, 972, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                            .addGap(40, 40, 40)
+                            .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                            .addGap(42, 42, 42)
+                            .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                            .addGap(20, 20, 20)
+                            .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(166, Short.MAX_VALUE))
+        );
+        aboutUsPanelLayout.setVerticalGroup(
+            aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                .addGap(40, 40, 40)
+                .addComponent(jLabel14)
+                .addGap(15, 15, 15)
+                .addComponent(jTextArea3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(51, 51, 51)
+                .addComponent(jLabel17)
+                .addGap(30, 30, 30)
+                .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout settingsPanelLayout = new javax.swing.GroupLayout(settingsPanel);
         settingsPanel.setLayout(settingsPanelLayout);
         settingsPanelLayout.setHorizontalGroup(
             settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(settingsPanelLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, 349, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel11, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(aboutUsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 1371, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(66, 66, 66)
+                .addComponent(aboutUsPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(78, 78, 78)
                 .addComponent(aboutPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         settingsPanelLayout.setVerticalGroup(
             settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(settingsPanelLayout.createSequentialGroup()
                 .addComponent(aboutPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 22, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, settingsPanelLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(aboutUsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 957, Short.MAX_VALUE)
-                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, 957, Short.MAX_VALUE))
+                .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, 941, Short.MAX_VALUE)
+                    .addComponent(aboutUsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
 
@@ -1097,7 +1244,7 @@ private void loadAppointmentForEditing(String Id) {
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel12Layout.createSequentialGroup()
                 .addGap(15, 15, 15)
-                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 1300, Short.MAX_VALUE)
+                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 1352, Short.MAX_VALUE)
                 .addGap(29, 29, 29))
         );
         jPanel12Layout.setVerticalGroup(
@@ -1555,21 +1702,21 @@ private void loadAppointmentForEditing(String Id) {
         jPanel23.setLayout(jPanel23Layout);
         jPanel23Layout.setHorizontalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1344, Short.MAX_VALUE)
+            .addGap(0, 1396, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 373, Short.MAX_VALUE)
+                    .addGap(0, 399, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 372, Short.MAX_VALUE)))
+                    .addGap(0, 398, Short.MAX_VALUE)))
         );
         jPanel23Layout.setVerticalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 164, Short.MAX_VALUE)
+            .addGap(0, 138, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 13, Short.MAX_VALUE)
+                    .addGap(0, 0, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 13, Short.MAX_VALUE)))
+                    .addGap(0, 0, Short.MAX_VALUE)))
         );
 
         jPanel19.add(jPanel23);
@@ -1653,6 +1800,7 @@ private void loadAppointmentForEditing(String Id) {
         jButton5.setToolTipText("");
         jButton5.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jButton5.setIconTextGap(0);
+        jButton5.setPreferredSize(new java.awt.Dimension(83, 58));
         jButton5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton5ActionPerformed(evt);
@@ -1762,7 +1910,7 @@ private void loadAppointmentForEditing(String Id) {
         jLabel22.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel22.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel22.setText("TOTAL BILL:");
-        jPanel6.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 330, 110, 30));
+        jPanel6.add(jLabel22, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, 100, 30));
 
         totalBillTextfield.setEditable(false);
         totalBillTextfield.setBackground(new java.awt.Color(230, 230, 230));
@@ -1771,12 +1919,7 @@ private void loadAppointmentForEditing(String Id) {
                 totalBillTextfieldActionPerformed(evt);
             }
         });
-        jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 330, 140, 30));
-
-        jLabel23.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel23.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel23.setText("₱");
-        jPanel6.add(jLabel23, new org.netbeans.lib.awtextra.AbsoluteConstraints(100, 330, 30, 30));
+        jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 330, 140, 30));
 
         jTextArea1.setEditable(false);
         jTextArea1.setBackground(new java.awt.Color(255, 255, 255));
@@ -1868,28 +2011,30 @@ private void loadAppointmentForEditing(String Id) {
         appointmentsPanelLayout.setHorizontalGroup(
             appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                .addContainerGap(8, Short.MAX_VALUE)
-                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
-                        .addGap(18, 18, 18)
-                        .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(32, 32, 32)
+                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(appointmentsPanelLayout.createSequentialGroup()
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(10, 10, 10)
                         .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(10, 10, 10)
-                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(8, 8, 8))
+                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(2, 2, 2))
+                    .addGroup(appointmentsPanelLayout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1169, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jButton6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(34, Short.MAX_VALUE))
         );
         appointmentsPanelLayout.setVerticalGroup(
             appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                .addGap(22, 22, 22)
+                .addGap(24, 24, 24)
                 .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, 400, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1897,18 +2042,135 @@ private void loadAppointmentForEditing(String Id) {
                 .addGap(28, 28, 28)
                 .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(24, 24, 24)
-                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton6, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jButton4)
+                        .addGap(13, 13, 13)
+                        .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton6))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(71, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel10.add(appointmentsPanel, "card3");
+
+        recordsPanel.setBackground(new java.awt.Color(241, 239, 236));
+        recordsPanel.setMaximumSize(new java.awt.Dimension(1400, 700));
+        recordsPanel.setPreferredSize(new java.awt.Dimension(1450, 700));
+
+        jScrollPane2.setMinimumSize(new java.awt.Dimension(0, 0));
+        jScrollPane2.setName(""); // NOI18N
+        jScrollPane2.setPreferredSize(null);
+        jScrollPane2.setViewportView(recordsTable);
+        jScrollPane2.setMaximumSize(null);
+
+        recordsTable.setAutoCreateRowSorter(true);
+        recordsTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Owner", "Address", "Email", "Number", "Pet Name", "Species", "Breed", "Services", "Date", "Assistant", "Total Bill"
+            }
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        recordsTable.setToolTipText("");
+        recordsTable.setAlignmentX(2.0F);
+        recordsTable.setAlignmentY(2.0F);
+        recordsTable.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+        recordsTable.setFillsViewportHeight(true);
+        recordsTable.setInheritsPopupMenu(true);
+        recordsTable.setMaximumSize(new java.awt.Dimension(0, 0));
+        recordsTable.setMinimumSize(new java.awt.Dimension(0, 0));
+        recordsTable.setName(""); // NOI18N
+        recordsTable.setPreferredSize(new java.awt.Dimension(1330, 600));
+        recordsTable.setShowHorizontalLines(true);
+        recordsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                recordsTableMouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                recordsTableMouseEntered(evt);
+            }
+        });
+        jScrollPane2.setViewportView(recordsTable);
+        recordsTable.getAccessibleContext().setAccessibleName("");
+
+        // Force proper scrolling behavior
+        jScrollPane2.setVerticalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        );
+        jScrollPane2.setHorizontalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
+
+        // Ensure table fills viewport
+        recordsTable.setFillsViewportHeight(true);
+
+        jLabel1.setText("Search:");
+
+        jTextField1.setPreferredSize(new java.awt.Dimension(64, 24));
+        jTextField1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTextField1MouseClicked(evt);
+            }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                jTextField1MouseEntered(evt);
+            }
+        });
+        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jTextField1ActionPerformed(evt);
+            }
+        });
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jTextField1KeyReleased(evt);
+            }
+        });
+
+        javax.swing.GroupLayout recordsPanelLayout = new javax.swing.GroupLayout(recordsPanel);
+        recordsPanel.setLayout(recordsPanelLayout);
+        recordsPanelLayout.setHorizontalGroup(
+            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(appointmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, 266, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(66, 66, 66))
+            .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGap(34, 34, 34)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1314, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(50, Short.MAX_VALUE))
+        );
+        recordsPanelLayout.setVerticalGroup(
+            recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGap(16, 16, 16)
+                .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(appointmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(30, 30, 30)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 617, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel10.add(recordsPanel, "card4");
 
         jPanel1.add(jPanel10, java.awt.BorderLayout.CENTER);
 
@@ -1920,29 +2182,33 @@ private void loadAppointmentForEditing(String Id) {
 
     private void appointmentsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appointmentsButtonActionPerformed
         switchPanel(appointmentsPanel);
+        highlightButtonBorder(appointmentsButton);
 //        highlightButton(appointmentsButton);   
     }//GEN-LAST:event_appointmentsButtonActionPerformed
     
     private void recordsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordsButtonActionPerformed
          switchPanel(recordsPanel);
+         highlightButtonBorder(recordsButton);
 //         highlightButton(recordsButton);
          loadRecordsTable(); 
+        int rowCount = recordsTable.getRowCount();
+        appointmentCount.setText("Total Records: " + rowCount);  
     }//GEN-LAST:event_recordsButtonActionPerformed
 
     private void appointmentsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMousePressed
-        appointmentsButton.setBackground(clickedcolor);
-        recordsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        settingsButton.setBackground(defaultcolor);
-        appointmentsButton.setForeground(white);
+//        appointmentsButton.setBackground(clickedcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        settingsButton.setBackground(defaultcolor);
+//        appointmentsButton.setForeground(white);
     }//GEN-LAST:event_appointmentsButtonMousePressed
 
     private void recordsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMousePressed
-        appointmentsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(clickedcolor);
-        recordsButton.setBackground(defaultcolor);
-        settingsButton.setBackground(defaultcolor);
-        recordsButton.setForeground(white);
+//        appointmentsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(clickedcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        settingsButton.setBackground(defaultcolor);
+//        recordsButton.setForeground(white);
     }//GEN-LAST:event_recordsButtonMousePressed
 
     private void appointmentsButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseReleased
@@ -1955,6 +2221,7 @@ private void loadAppointmentForEditing(String Id) {
 
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
         switchPanel(settingsPanel);
+        highlightButtonBorder(settingsButton);
 //        highlightButton(settingsButton);
     }//GEN-LAST:event_settingsButtonActionPerformed
     
@@ -2122,70 +2389,54 @@ private Map<String, Double> createServicePricesMap() {
     return prices;
 }
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
-     List<String> selectedServices = new ArrayList<>();
-double totalBill = 0.0; 
+                                          
+    List<String> selectedServices = new ArrayList<>();
+    double totalBill = 0.0;
 
-// 1. Collect selected names from checkboxes
-if (jCheckBox1.isSelected()) selectedServices.add(jCheckBox1.getText());
-if (jCheckBox2.isSelected()) selectedServices.add(jCheckBox2.getText());
-if (jCheckBox3.isSelected()) selectedServices.add(jCheckBox3.getText());
-if (jCheckBox4.isSelected()) selectedServices.add(jCheckBox4.getText());
-if (jCheckBox5.isSelected()) selectedServices.add(jCheckBox5.getText());
-if (jCheckBox6.isSelected()) selectedServices.add(jCheckBox6.getText());
-if (jCheckBox7.isSelected()) selectedServices.add(jCheckBox7.getText());
-if (jCheckBox8.isSelected()) selectedServices.add(jCheckBox8.getText());
-if (jCheckBox9.isSelected()) selectedServices.add(jCheckBox9.getText());
-if (jCheckBox10.isSelected()) selectedServices.add(jCheckBox10.getText());
-if (jCheckBox11.isSelected()) selectedServices.add(jCheckBox11.getText());
-if (jCheckBox12.isSelected()) selectedServices.add(jCheckBox12.getText());
-if (jCheckBox13.isSelected()) selectedServices.add(jCheckBox13.getText());
-if (jCheckBox14.isSelected()) selectedServices.add(jCheckBox14.getText());
-if (jCheckBox15.isSelected()) selectedServices.add(jCheckBox15.getText());
-if (jCheckBox16.isSelected()) selectedServices.add(jCheckBox16.getText());
-if (jCheckBox17.isSelected()) selectedServices.add(jCheckBox17.getText());
-if (jCheckBox18.isSelected()) selectedServices.add(jCheckBox18.getText());
-if (jCheckBox19.isSelected()) selectedServices.add(jCheckBox19.getText());
-if (jCheckBox20.isSelected()) selectedServices.add(jCheckBox20.getText());
-if (jCheckBox21.isSelected()) selectedServices.add(jCheckBox21.getText());
-if (jCheckBox22.isSelected()) selectedServices.add(jCheckBox22.getText());
-if (jCheckBox23.isSelected()) selectedServices.add(jCheckBox23.getText());
-if (jCheckBox24.isSelected()) selectedServices.add(jCheckBox24.getText());
-if (jCheckBox25.isSelected()) selectedServices.add(jCheckBox25.getText());
-
-
-List<String> detailedServiceList = new ArrayList<>();
-
-for (String serviceName : selectedServices) {
-    Double price = servicePrices.get(serviceName);
-    
-    if (price != null) {
-        totalBill += price;
-       
-        detailedServiceList.add(String.format("%s - %.2f", serviceName, price));
-    } else {
-        System.err.println("Warning: Price not found for service: " + serviceName);
-        detailedServiceList.add(serviceName + " - Price N/A");
+    // Collect selected services and calculate total
+    for (JCheckBox checkbox : serviceCheckboxes) {
+        if (checkbox.isSelected()) {
+            String serviceName = checkbox.getText();
+            selectedServices.add(serviceName);
+            
+            Double price = servicePrices.get(serviceName);
+            if (price != null) {
+                totalBill += price;
+            }
+        }
     }
-}
 
+    if (selectedServices.isEmpty()) {
+        JOptionPane.showMessageDialog(this, 
+            "Please select at least one service before adding.", 
+            "No Services Selected", 
+            JOptionPane.INFORMATION_MESSAGE);
+        totalBillTextfield.setText("₱0.00");
+        jTextArea1.setText("");
+        return;
+    }
 
-if (selectedServices.isEmpty()) {
-    JOptionPane.showMessageDialog(this, "No services were selected.", "Information", JOptionPane.INFORMATION_MESSAGE);
-    totalBillTextfield.setText("0.00"); 
-} else {
-   
+    // Format services with prices and peso symbol
+    List<String> detailedServiceList = new ArrayList<>();
+    for (String serviceName : selectedServices) {
+        Double price = servicePrices.get(serviceName);
+        if (price != null) {
+            detailedServiceList.add(String.format("%s - ₱%.2f", serviceName, price));
+        } else {
+            detailedServiceList.add(serviceName + " - Price N/A");
+        }
+    }
+
     String verticalServices = String.join("\n", detailedServiceList);
     jTextArea1.setText(verticalServices);
 
-    String formattedTotal = String.format("%.2f", totalBill);
-    totalBillTextfield.setText(formattedTotal); 
+    String formattedTotal = String.format("₱%.2f", totalBill);
+    totalBillTextfield.setText(formattedTotal);
 
-    
     JOptionPane.showMessageDialog(this, 
-            "Selected services added: \n" + verticalServices + 
-            "\n\nTotal Cost: " + formattedTotal, 
-            "Success", JOptionPane.INFORMATION_MESSAGE);
-}
+        "Services added successfully!\n\nTotal: " + formattedTotal, 
+        "Success", 
+        JOptionPane.INFORMATION_MESSAGE);
 
     switchPanel(appointmentsPanel);
     }//GEN-LAST:event_addButtonActionPerformed
@@ -2249,73 +2500,79 @@ if (selectedServices.isEmpty()) {
     }//GEN-LAST:event_classNameTextfieldActionPerformed
 
     private void addAppointmentButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAppointmentButtonActionPerformed
+                                                  
     String clientName = classNameTextfield.getText().trim();
     String address = addressTextfield.getText().trim();
     String email = emailTextfield.getText().trim();
-    String contact = contactTextfield.getText();
+    String contact = contactTextfield.getText().trim();
     String petName = petNameTextfield.getText().trim();
     String species = speciesTextField.getText().trim();
     String breed = breedTextField.getText().trim();
     
-    String selectedServices = jTextArea1.getText();
+    String selectedServices = jTextArea1.getText().trim();
     Date schedule = jDateChooser1.getDate();
-    String assistant = JComboBox.getSelectedItem().toString().trim();
+    Object selectedAssistant = JComboBox.getSelectedItem();
+    String assistant = (selectedAssistant != null) ? selectedAssistant.toString().trim() : "";
 
-    // Validation code (keep existing validation)...
+//    if (!contact.matches("\\d{11}")) {
+//    JOptionPane.showMessageDialog(this,
+//        "Contact number must be exactly 11 digits.",
+//        "Invalid Contact Number",
+//        JOptionPane.ERROR_MESSAGE);
+//    return;
+//    }
+//    
+    // Validation - Check all required fields
     List<String> missingFields = new ArrayList<>();
     if (clientName.isEmpty()) missingFields.add("Client Name");
     if (address.isEmpty()) missingFields.add("Address");
     if (email.isEmpty()) missingFields.add("Email");
+    if (contact.isEmpty()) missingFields.add("Contact Number");
     if (petName.isEmpty()) missingFields.add("Pet Name");
     if (species.isEmpty()) missingFields.add("Species");
     if (breed.isEmpty()) missingFields.add("Breed");
+    if (selectedServices.isEmpty()) missingFields.add("Selected Services");
     if (schedule == null) missingFields.add("Schedule Date");
-    if (assistant.isEmpty()) missingFields.add("Assistant");
+    if (assistant.isEmpty()) missingFields.add("Assigned Assistant");
     
     if (!missingFields.isEmpty()) {
-        String message = "Please fill in the following required fields:\n - " + String.join("\n - ", missingFields);
-        JOptionPane.showMessageDialog(this, message, "Missing Required Information", JOptionPane.WARNING_MESSAGE);
+        String message = "Please fill in all required fields:\n\n• " + String.join("\n• ", missingFields);
+        JOptionPane.showMessageDialog(this, message, "Required Fields Missing", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
     SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
     String sched = sdf.format(schedule);
 
-    // Contact validation (keep existing validation)...
-    Long clientContactNumber = null;
-    String contactTrimmed = contact.trim();
-    if (contactTrimmed.matches(".*[^\\d\\s].*")) {
-        JOptionPane.showMessageDialog(this, "Input Error: Only digits are allowed in the contact field.", "Invalid Character", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    String cleanContactInput = contactTrimmed.replaceAll("[^\\d]", "");
-    if (cleanContactInput.isEmpty() || cleanContactInput.length() != 11) {
-        JOptionPane.showMessageDialog(this, "Contact number must be exactly 11 digits long.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        return;
-    }
-    try {
-        clientContactNumber = Long.parseLong(cleanContactInput);
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Invalid contact number.", "Input Error", JOptionPane.WARNING_MESSAGE);
+    // Contact validation - must be exactly 11 digits
+    if (!contact.matches("\\d{11}")) {
+        JOptionPane.showMessageDialog(this, 
+            "Contact number must be exactly 11 digits.\nPlease enter a valid Philippine mobile number.", 
+            "Invalid Contact Number", 
+            JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-    // Total bill validation (keep existing validation)...
+    // Total bill validation
     double totalBill = 0.0;
-    String totalBillInput = totalBillTextfield.getText();
-    String cleanBillInput = totalBillInput.trim().replaceAll("[^\\d\\.]", "");
-    if (totalBillInput.trim().isEmpty()) {
-        JOptionPane.showMessageDialog(this, "The Total Bill field is required.", "Input Error", JOptionPane.WARNING_MESSAGE);
+    String totalBillInput = totalBillTextfield.getText().trim();
+    if (totalBillInput.isEmpty() || totalBillInput.equals("0.00") || totalBillInput.equals("₱0.00")) {
+        JOptionPane.showMessageDialog(this, 
+            "Please select at least one service before adding the appointment.", 
+            "No Services Selected", 
+            JOptionPane.WARNING_MESSAGE);
         return;
     }
+    
     try {
-        if (cleanBillInput.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        String cleanBillInput = totalBillInput.replaceAll("[^\\d\\.]", "");
+        totalBill = Double.parseDouble(cleanBillInput);
+        if (totalBill <= 0) {
+            JOptionPane.showMessageDialog(this, "Total bill must be greater than zero.", "Invalid Amount", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        totalBill = Double.parseDouble(cleanBillInput);
     } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+        JOptionPane.showMessageDialog(this, "Please enter a valid amount for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
@@ -2334,7 +2591,7 @@ if (selectedServices.isEmpty()) {
         pstmt.setString(1, clientName);
         pstmt.setString(2, address);
         pstmt.setString(3, email);
-        pstmt.setLong(4, clientContactNumber);
+        pstmt.setString(4, contact); // Store as string to preserve 11 digits
         pstmt.setString(5, petName);
         pstmt.setString(6, species);
         pstmt.setString(7, breed);
@@ -2343,61 +2600,75 @@ if (selectedServices.isEmpty()) {
         pstmt.setString(10, assistant);
         pstmt.setDouble(11, totalBill);
 
-        int rowsAffected = pstmt.executeUpdate();
-        if (rowsAffected > 0) {
-            // Retrieve the generated ID
-            ResultSet generatedKeys = pstmt.getGeneratedKeys();
-            int generatedId = -1;
-            if (generatedKeys.next()) {
-                generatedId = generatedKeys.getInt(1);
-            }
-            generatedKeys.close();
-
-            // Add to jTable1
-            DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
-            jTable1Model.addRow(new Object[]{
-                clientName,       // Client Name
-                petName,          // Pet Name
-                species,          // Species
-                selectedServices, // Services
-                generatedId       // ID (hidden)
-            });
-            
-            // Refresh recordsTable to show new entry
-            loadRecordsTable();
-            
-            JOptionPane.showMessageDialog(this, "Appointment added successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-            clearFormFields();
-            
-            // Uncheck all service checkboxes
-            jCheckBox1.setSelected(false);
-            jCheckBox2.setSelected(false);
-            jCheckBox3.setSelected(false);
-            jCheckBox4.setSelected(false);
-            jCheckBox5.setSelected(false);
-            jCheckBox6.setSelected(false);
-            jCheckBox7.setSelected(false);
-            jCheckBox8.setSelected(false);
-            jCheckBox9.setSelected(false);
-            jCheckBox10.setSelected(false);
-            jCheckBox11.setSelected(false);
-            jCheckBox12.setSelected(false);
-            jCheckBox13.setSelected(false);
-            jCheckBox14.setSelected(false);
-            jCheckBox15.setSelected(false);
-            jCheckBox16.setSelected(false);
-            jCheckBox17.setSelected(false);
-            jCheckBox18.setSelected(false);
-            jCheckBox19.setSelected(false);
-            jCheckBox20.setSelected(false);
-            jCheckBox21.setSelected(false);
-            jCheckBox22.setSelected(false);
-            jCheckBox23.setSelected(false);
-            jCheckBox24.setSelected(false);
-            jCheckBox25.setSelected(false);
-        } else {
-            JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+     int rowsAffected = pstmt.executeUpdate();
+    if (rowsAffected > 0) {
+        ResultSet generatedKeys = pstmt.getGeneratedKeys();
+        int generatedId = -1;
+        if (generatedKeys.next()) {
+            generatedId = generatedKeys.getInt(1);
+            lastAddedAppointmentId = generatedId;
         }
+        generatedKeys.close();
+
+        // Add to jTable1 with peso symbol
+       DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+       jTable1Model.addRow(new Object[]{
+    clientName,
+    petName,
+    species,
+    selectedServices,
+    generatedId          // hidden ID column
+});
+int newRowIndex = jTable1Model.getRowCount() - 1;
+jTable1.setRowSelectionInterval(newRowIndex, newRowIndex);
+jTable1.scrollRectToVisible(jTable1.getCellRect(newRowIndex, 0, true));
+
+// -----------------------------------------------------------------
+// 2️⃣  Refresh the *records* table so the DB now contains the new row
+// -----------------------------------------------------------------
+//loadRecordsTable();  
+loadRecordsTable(null);// rebuild the records table model          // complete redraw
+
+//     Add to recordsTable and place at LAST ROW
+//
+//   DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
+//
+//String formattedBill = String.format("₱%.2f", totalBill);
+//
+//recordsModel.addRow(new Object[]{
+//    generatedId,           // ID
+//    clientName,            // Owner
+//    address,               // Address
+//    email,                 // Email
+//    contact,               // Contact (11 digits)
+//    petName,               // Pet Name
+//    species,               // Species
+//    breed,                 // Breed
+//    selectedServices,      // Services
+//    sched,                 // Schedule
+//    assistant,             // Assistant
+//    formattedBill,         // Total Bill
+//    "Pending"              // Status
+//});
+//
+// Automatically select and scroll to LAST ROW
+//int lastRow = recordsModel.getRowCount() - 1;
+//recordsTable.setRowSelectionInterval(lastRow, lastRow);
+//recordsTable.scrollRectToVisible(
+//    recordsTable.getCellRect(lastRow, 0, true)
+//);
+        JOptionPane.showMessageDialog(this, 
+            "Appointment added successfully!\n\nAppointment ID: " + generatedId, 
+            "Success", 
+            JOptionPane.INFORMATION_MESSAGE);
+        
+        // Clear form and uncheck all checkboxes
+        clearFormFields();
+        uncheckAllServices();
+        JComboBox.setSelectedIndex(-1); // Add this after setModel
+    } else {
+        JOptionPane.showMessageDialog(this, "Failed to add appointment.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
 
     } catch (SQLException e) {
         JOptionPane.showMessageDialog(this, "Database Error: " + e.getMessage(), "SQL Error", JOptionPane.ERROR_MESSAGE);
@@ -2407,7 +2678,7 @@ if (selectedServices.isEmpty()) {
             if (conn != null) conn.close();
         } catch (SQLException ex) {
         }
-    }                                                 
+    }                                           
     }//GEN-LAST:event_addAppointmentButtonActionPerformed
 
     private void totalBillTextfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalBillTextfieldActionPerformed
@@ -2431,50 +2702,60 @@ if (selectedServices.isEmpty()) {
     }//GEN-LAST:event_petNameTextfieldActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+                                       
+    if (selectedAppointmentId == -1) {
+        JOptionPane.showMessageDialog(this, 
+            "Please select an appointment from the table to print a receipt.", 
+            "No Selection", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
-        if (selectedAppointmentId == -1) {
-            JOptionPane.showMessageDialog(this, "Please select an appointment from the table to print.", "No Selection", JOptionPane.WARNING_MESSAGE);
-            return;
+    // Load data directly from database if fields are not loaded
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = jdbcConnection.getConnection();
+        ps = conn.prepareStatement("SELECT * FROM appointments WHERE id = ?");
+        ps.setInt(1, selectedAppointmentId);
+        rs = ps.executeQuery();
+        
+        if (rs.next()) {
+            String clientName = rs.getString("client_name");
+            String address = rs.getString("client_address");
+            String email = rs.getString("client_email");
+            String contact = rs.getString("client_contact");
+            String petName = rs.getString("pet_name");
+            String species = rs.getString("pet_species");
+            String breed = rs.getString("pet_breed");
+            String selectedServices = rs.getString("selected_services");
+            String formattedSchedule = rs.getString("schedule");
+            String assistant = rs.getString("assigned_assistant");
+            double totalBill = rs.getDouble("total_bill");
+
+            printFrame printer = new printFrame(
+                clientName, address, email, contact, petName, species, breed, 
+                selectedServices, formattedSchedule, assistant, totalBill
+            );
+            printer.setVisible(true);
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Could not load appointment data.", 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, 
+            "Error loading appointment: " + e.getMessage(), 
+            "Database Error", 
+            JOptionPane.ERROR_MESSAGE);
+    } finally {
+        jdbcConnection.closeConnection(conn, ps, rs);
+    }
 
-        int row = jTable1.getSelectedRow();
-        int modelRow = jTable1.convertRowIndexToModel(row);
-
-        String clientName = classNameTextfield.getText();
-        String address = addressTextfield.getText();
-        String contact = contactTextfield.getText();
-        String petName = petNameTextfield.getText();
-        String species = speciesTextField.getText();
-        String breed = breedTextField.getText();
-        String selectedServices = jTextArea1.getText();
-        Date scheduleDate = jDateChooser1.getDate();
-        String formattedSchedule = "";
-        if (scheduleDate != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-            formattedSchedule = sdf.format(scheduleDate);
-        }
-
-String appointmentCode = "";  // Fetch from DB using selectedAppointmentId
-try (Connection con = jdbcConnection.getConnection()) {
-    PreparedStatement ps = con.prepareStatement("SELECT appointment_code FROM appointments WHERE id = ?");
-    ps.setInt(1, selectedAppointmentId);
-    ResultSet rs = ps.executeQuery();
-    if (rs.next()) appointmentCode = rs.getString("appointment_code");
-} catch (Exception e) { /* handle */ }
-
-        String assistant = JComboBox.getSelectedItem().toString();
-        double totalBill = 0.0;
-        try {
-            totalBill = Double.parseDouble(totalBillTextfield.getText());
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Total Bill is not a valid number. Printing will proceed with 0.0.", "Input Error", JOptionPane.WARNING_MESSAGE);
-        }
-
-         printFrame printer = new printFrame(
-        clientName, address, contact, petName, species, breed, selectedServices,
-        formattedSchedule, assistant, totalBill
-    );
-    printer.setVisible(true);
     }//GEN-LAST:event_jButton6ActionPerformed
 
     private void jButton5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton5ActionPerformed
@@ -2505,12 +2786,13 @@ try (Connection con = jdbcConnection.getConnection()) {
     }//GEN-LAST:event_jButton5ActionPerformed
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-if (selectedAppointmentId == -1) {
-        JOptionPane.showMessageDialog(this, "Please select an appointment from the table to update.", "No Selection", JOptionPane.WARNING_MESSAGE);
+                                         
+    if (selectedAppointmentId == -1) {
+        JOptionPane.showMessageDialog(this, "Please select an appointment to update.", "No Selection", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
-    // Collect and validate data
+    // Collect data
     String clientName = classNameTextfield.getText().trim();
     String address = addressTextfield.getText().trim();
     String email = emailTextfield.getText().trim();
@@ -2520,18 +2802,57 @@ if (selectedAppointmentId == -1) {
     String breed = breedTextField.getText().trim();
     String selectedServices = jTextArea1.getText().trim();
     Date schedule = jDateChooser1.getDate();
-    String assistant = JComboBox.getSelectedItem().toString().trim();
-    double totalBill = 0.0;
+    Object selectedAssistant = JComboBox.getSelectedItem();
+    String assistant = (selectedAssistant != null) ? selectedAssistant.toString().trim() : "";
+
+    // Validation
+    List<String> missingFields = new ArrayList<>();
+    if (clientName.isEmpty()) missingFields.add("Client Name");
+    if (address.isEmpty()) missingFields.add("Address");
+    if (email.isEmpty()) missingFields.add("Email");
+    if (contact.isEmpty()) missingFields.add("Contact Number");
+    if (petName.isEmpty()) missingFields.add("Pet Name");
+    if (species.isEmpty()) missingFields.add("Species");
+    if (breed.isEmpty()) missingFields.add("Breed");
+    if (selectedServices.isEmpty()) missingFields.add("Selected Services");
+    if (schedule == null) missingFields.add("Schedule Date");
+    if (assistant.isEmpty()) missingFields.add("Assigned Assistant");
     
-    try {
-        totalBill = Double.parseDouble(totalBillTextfield.getText().trim());
-    } catch (NumberFormatException ex) {
-        JOptionPane.showMessageDialog(this, "Please enter a valid number for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
+    if (!missingFields.isEmpty()) {
+        String message = "Please fill in all required fields:\n\n• " + String.join("\n• ", missingFields);
+        JOptionPane.showMessageDialog(this, message, "Required Fields Missing", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    // Contact validation
+    if (!contact.matches("\\d{11}")) {
+        JOptionPane.showMessageDialog(this, 
+            "Contact number must be exactly 11 digits.\nPlease enter a valid Philippine mobile number.", 
+            "Invalid Contact Number", 
+            JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+
+    // Total bill validation
+    double totalBill = 0.0;
+    String totalBillInput = totalBillTextfield.getText().trim();
+    if (totalBillInput.isEmpty() || totalBillInput.equals("0.00") || totalBillInput.equals("₱0.00")) {
+        JOptionPane.showMessageDialog(this, 
+            "Total bill cannot be zero. Please select services.", 
+            "Invalid Amount", 
+            JOptionPane.WARNING_MESSAGE);
         return;
     }
     
-    if (clientName.isEmpty() || petName.isEmpty() || schedule == null) {
-        JOptionPane.showMessageDialog(this, "Client Name, Pet Name, and Schedule are required.", "Input Error", JOptionPane.WARNING_MESSAGE);
+    try {
+        String cleanBillInput = totalBillInput.replaceAll("[^\\d\\.]", "");
+        totalBill = Double.parseDouble(cleanBillInput);
+        if (totalBill <= 0) {
+            JOptionPane.showMessageDialog(this, "Total bill must be greater than zero.", "Invalid Amount", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+    } catch (NumberFormatException ex) {
+        JOptionPane.showMessageDialog(this, "Please enter a valid amount for Total Bill.", "Input Error", JOptionPane.WARNING_MESSAGE);
         return;
     }
 
@@ -2543,8 +2864,8 @@ if (selectedAppointmentId == -1) {
     
     try {
         conn = jdbcConnection.getConnection();
-        if (conn == null || !conn.isValid(5)) {
-            JOptionPane.showMessageDialog(this, "Failed to establish a valid database connection.", "Connection Error", JOptionPane.ERROR_MESSAGE);
+        if (conn == null) {
+            JOptionPane.showMessageDialog(this, "Failed to establish database connection.", "Connection Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
@@ -2565,27 +2886,31 @@ if (selectedAppointmentId == -1) {
 
         int rowsAffected = pstmt.executeUpdate();
         if (rowsAffected > 0) {
-    JOptionPane.showMessageDialog(this, "Appointment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-    
-    // Update jTable1 - find the row with matching ID
-    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
-    for (int i = 0; i < jTable1Model.getRowCount(); i++) {
-        int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column
-        if (rowId == selectedAppointmentId) {
-            jTable1Model.setValueAt(clientName, i, 0);
-            jTable1Model.setValueAt(petName, i, 1);
-            jTable1Model.setValueAt(species, i, 2);
-            jTable1Model.setValueAt(selectedServices, i, 3);
-            break;
-        }
-    }
-    
-    // Refresh recordsTable
-    loadRecordsTable();
+            JOptionPane.showMessageDialog(this, "Appointment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             
+            // Update jTable1
+            DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+            for (int i = 0; i < jTable1Model.getRowCount(); i++) {
+                int rowId = (int) jTable1Model.getValueAt(i, 4);
+                if (rowId == selectedAppointmentId) {
+                    jTable1Model.setValueAt(clientName, i, 0);
+                    jTable1Model.setValueAt(petName, i, 1);
+                    jTable1Model.setValueAt(species, i, 2);
+                    jTable1Model.setValueAt(selectedServices, i, 3);
+                    
+                    // Re-select and scroll to updated row
+                    jTable1.setRowSelectionInterval(i, i);
+                    jTable1.scrollRectToVisible(jTable1.getCellRect(i, 0, true));
+                    break;
+                }
+            }
+       
+            loadRecordsTable();
             clearFormFields();
+            uncheckAllServices();
+            JComboBox.setSelectedIndex(-1); // **ADD THIS - Clear JComboBox after update**
             selectedAppointmentId = -1;
-            editingRow = -1;
+            fieldsLoaded = false;
         } else {
             JOptionPane.showMessageDialog(this, "Failed to update appointment.", "Error", JOptionPane.ERROR_MESSAGE);
         }
@@ -2624,23 +2949,26 @@ if (selectedAppointmentId == -1) {
             int rowsAffected = pstmt.executeUpdate();
 
             if (rowsAffected > 0) {
-    JOptionPane.showMessageDialog(this, "Appointment deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-    
-    // Remove from jTable1 - find row with matching ID
-    DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
-    for (int i = 0; i < jTable1Model.getRowCount(); i++) {
-        int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column
-        if (rowId == selectedAppointmentId) {
-            jTable1Model.removeRow(i);
-            break;
-        }
-    }
-    
-    // Refresh recordsTable
-    loadRecordsTable();
+                JOptionPane.showMessageDialog(this, "Appointment deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Remove from jTable1 - find row with matching ID
+                DefaultTableModel jTable1Model = (DefaultTableModel) jTable1.getModel();
+                for (int i = 0; i < jTable1Model.getRowCount(); i++) {
+                    int rowId = (int) jTable1Model.getValueAt(i, 4); // ID column
+                    if (rowId == selectedAppointmentId) {
+                        jTable1Model.removeRow(i);
+                        break;
+                    }
+                }
+                
+                // Refresh recordsTable
+                loadRecordsTable();
                 
                 clearFormFields();
+                uncheckAllServices(); // **ADD THIS if not present**
+                JComboBox.setSelectedIndex(-1); // **ADD THIS - Clear JComboBox after delete**
                 selectedAppointmentId = -1;
+            
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to delete appointment.", "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -2697,12 +3025,12 @@ if (selectedAppointmentId == -1) {
     }//GEN-LAST:event_recordsTableMouseClicked
 
     private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyReleased
-    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
-    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
-    recordsTable.setRowSorter(sorter);
-
-    String search = jTextField1.getText();
-    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
+//    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
+//    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+//    recordsTable.setRowSorter(sorter);
+//
+//    String search = jTextField1.getText();
+//    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
 
     }//GEN-LAST:event_jTextField1KeyReleased
 
@@ -2715,35 +3043,35 @@ if (selectedAppointmentId == -1) {
     }//GEN-LAST:event_recordsTableMouseEntered
 
     private void settingsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMousePressed
-        appointmentsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        settingsButton.setBackground(clickedcolor);
-        settingsButton.setForeground(white);       
+//        appointmentsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        settingsButton.setBackground(clickedcolor);
+//        settingsButton.setForeground(white);       
     }//GEN-LAST:event_settingsButtonMousePressed
 
     private void settingsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMouseEntered
-        appointmentsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        settingsButton.setBackground(clickedcolor);
-        settingsButton.setForeground(white);
+//        appointmentsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        settingsButton.setBackground(clickedcolor);
+//        settingsButton.setForeground(white);
     }//GEN-LAST:event_settingsButtonMouseEntered
 
     private void recordsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMouseEntered
-        appointmentsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(clickedcolor);
-        settingsButton.setBackground(defaultcolor);
-        recordsButton.setForeground(white);
+//        appointmentsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(clickedcolor);
+//        settingsButton.setBackground(defaultcolor);
+//        recordsButton.setForeground(white);
     }//GEN-LAST:event_recordsButtonMouseEntered
 
     private void appointmentsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseEntered
-        appointmentsButton.setBackground(clickedcolor);
-        recordsButton.setBackground(defaultcolor);
-        recordsButton.setBackground(defaultcolor);
-        settingsButton.setBackground(defaultcolor);
-        appointmentsButton.setForeground(white);
+//        appointmentsButton.setBackground(clickedcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        recordsButton.setBackground(defaultcolor);
+//        settingsButton.setBackground(defaultcolor);
+//        appointmentsButton.setForeground(white);
     }//GEN-LAST:event_appointmentsButtonMouseEntered
 
     private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox11ActionPerformed
@@ -2753,6 +3081,16 @@ if (selectedAppointmentId == -1) {
     private void jCheckBox14ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox14ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jCheckBox14ActionPerformed
+
+    private void jTextField1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField1MouseEntered
+//    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
+//    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+//    recordsTable.setRowSorter(sorter);
+//
+//    String search = jTextField1.getText();
+//    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
+//            
+    }//GEN-LAST:event_jTextField1MouseEntered
 
     public void setSelectedServices(String services) {
         jTextArea1.setText(services);
@@ -2768,13 +3106,13 @@ if (selectedAppointmentId == -1) {
         
         jTextArea1.setText("");
         jDateChooser1.setDate(null); 
-        JComboBox.setSelectedItem(""); 
+        JComboBox.setSelectedIndex(-1); // **ENSURE THIS LINE EXISTS**
         
         totalBillTextfield.setText("");
         selectedAppointmentId = -1;
         jTable1.clearSelection();
-        fieldsLoaded = false; // Reset the flag when clearing fields
-}   
+        fieldsLoaded = false;
+    } 
 
     private void fetchAppointments(String search) throws SQLException {
     table.setRowCount(0);
@@ -2790,7 +3128,6 @@ if (selectedAppointmentId == -1) {
             return;
         }
         System.out.println("Connection established for fetchAppointments.");
-    
         String sql = "SELECT client_name, client_address, client_email, client_contact, pet_name, pet_species, pet_breed, selected_services, schedule, assigned_assistant, total_bill, id FROM appointments";
     
         if (search != null && !search.trim().isEmpty()) {
@@ -2809,9 +3146,9 @@ if (selectedAppointmentId == -1) {
         System.out.println("Query executed. ResultSet is valid: " + (rs != null));
         
         int rowCount = 0;
-       while (rs.next()) {
-    System.out.println("Fetched row: " + rs.getString("client_name") + ", " + rs.getString("pet_name"));
-    table.addRow(new Object[]{
+        while (rs.next()) {
+        System.out.println("Fetched row: " + rs.getString("client_name") + ", " + rs.getString("pet_name"));
+        table.addRow(new Object[]{
         rs.getString("client_name"),
         rs.getString("pet_name"),
         rs.getString("pet_species"),
@@ -2846,6 +3183,7 @@ if (selectedAppointmentId == -1) {
     private javax.swing.JButton addAppointmentButton;
     private javax.swing.JButton addButton;
     private javax.swing.JTextField addressTextfield;
+    private javax.swing.JLabel appointmentCount;
     private javax.swing.JButton appointmentsButton;
     private javax.swing.JPanel appointmentsPanel;
     private javax.swing.JButton boardingButton;
@@ -2902,7 +3240,6 @@ if (selectedAppointmentId == -1) {
     private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel23;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
