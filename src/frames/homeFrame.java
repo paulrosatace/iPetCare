@@ -2047,7 +2047,7 @@ private void loadAppointmentForEditing(String Id) {
         });
 
         jPanel13.setBackground(new java.awt.Color(244, 247, 247));
-        jPanel13.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        jPanel13.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
         jPanel13.setAutoscrolls(true);
         jPanel13.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
