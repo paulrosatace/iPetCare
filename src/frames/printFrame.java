@@ -149,9 +149,10 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setResizable(false);
 
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
         jPanel1.setPreferredSize(new java.awt.Dimension(400, 280));
 
-        jPanel3.setBackground(new java.awt.Color(0, 0, 0));
+        jPanel3.setBackground(new java.awt.Color(0, 109, 111));
 
         jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/Green Modern Veterinary Clinic Logo.png"))); // NOI18N
         jLabel11.setPreferredSize(new java.awt.Dimension(260, 53));
@@ -162,20 +163,21 @@ public class printFrame extends javax.swing.JFrame implements Printable{
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
                 .addContainerGap(116, Short.MAX_VALUE)
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(84, 84, 84))
+                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(101, 101, 101))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addGap(5, 5, 5)
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 47, Short.MAX_VALUE)
+                .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        jLabel1.setBackground(new java.awt.Color(46, 46, 46));
         jLabel1.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel1.setText("Client Name:");
@@ -188,6 +190,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextField2.setPreferredSize(new java.awt.Dimension(200, 30));
         jPanel2.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 20, 158, -1));
 
+        jLabel5.setBackground(new java.awt.Color(46, 46, 46));
         jLabel5.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel5.setText("Species:");
         jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 280, -1, -1));
@@ -204,6 +207,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         });
         jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 280, 157, -1));
 
+        jLabel2.setBackground(new java.awt.Color(46, 46, 46));
         jLabel2.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel2.setText("Address: ");
         jPanel2.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 68, -1));
@@ -220,6 +224,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         });
         jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 60, 156, -1));
 
+        jLabel4.setBackground(new java.awt.Color(46, 46, 46));
         jLabel4.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel4.setText("Pet Name:");
         jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 190, -1, -1));
@@ -248,10 +253,12 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         });
         jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 100, 158, -1));
 
+        jLabel3.setBackground(new java.awt.Color(46, 46, 46));
         jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel3.setText("Contact No.");
         jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, -1, -1));
 
+        jLabel6.setBackground(new java.awt.Color(46, 46, 46));
         jLabel6.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel6.setText("Breed:");
         jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 240, -1, -1));
@@ -268,6 +275,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         });
         jPanel2.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, 158, -1));
 
+        jLabel7.setBackground(new java.awt.Color(46, 46, 46));
         jLabel7.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel7.setText("Services:");
         jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 20, -1, -1));
@@ -280,6 +288,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextArea1.setFocusable(false);
         jPanel2.add(jTextArea1, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 40, 180, 290));
 
+        jLabel9.setBackground(new java.awt.Color(46, 46, 46));
         jLabel9.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel9.setText("Total Bill:");
@@ -299,6 +308,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         });
         jPanel2.add(jTextField9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 410, 160, -1));
 
+        jLabel8.setBackground(new java.awt.Color(46, 46, 46));
         jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel8.setText("Assistant:");
         jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, -1, -1));
@@ -310,6 +320,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextField8.setPreferredSize(new java.awt.Dimension(200, 30));
         jPanel2.add(jTextField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 370, 157, -1));
 
+        jLabel10.setBackground(new java.awt.Color(46, 46, 46));
         jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel10.setText("Email:");
         jPanel2.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 150, -1, -1));
@@ -319,6 +330,7 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         jTextField10.setBorder(null);
         jPanel2.add(jTextField10, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, 160, 30));
 
+        jLabel12.setBackground(new java.awt.Color(46, 46, 46));
         jLabel12.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel12.setText("Schedule:");
         jPanel2.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 370, -1, -1));
@@ -346,14 +358,13 @@ public class printFrame extends javax.swing.JFrame implements Printable{
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(89, 89, 89))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
-        setSize(new java.awt.Dimension(476, 547));
+        setSize(new java.awt.Dimension(476, 764));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
