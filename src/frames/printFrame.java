@@ -14,6 +14,10 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import javax.swing.JOptionPane;
 import javax.swing.*;
+import java.awt.Dimension;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
 /**
  *
  * @author ADMIN
@@ -25,68 +29,245 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     /**
      * Creates new form printFrame
      */
-   public printFrame(String clientName, String address, String email, String contact, String petName, String species, String breed, String selectedServices, String formattedSchedule, String assistant, double totalBill) {
+ public printFrame(String clientName, String address, String email, String contact, 
+                  String petName, String species, String breed, 
+                  String selectedServices, String formattedSchedule, 
+                  String assistant, double totalBill) {
     initComponents();
 
-    // Set all fields
-    jTextField2.setText(clientName);
-    jTextField3.setText(address);
-    jTextField4.setText(contact);
-    jTextField5.setText(petName);
-    jTextField6.setText(species);
-    jTextField7.setText(breed);
-    jTextArea1.setText(selectedServices);
-    jTextField8.setText(formattedSchedule);
-    jTextField10.setText(email);
-    jTextField11.setText(assistant);
-    jTextField9.setText(String.format("₱%.2f", totalBill));
+    // Generate random receipt number
+    receiptNumber.setText(generateReceiptNumber());
     
+    // Get current date and time
+    Date now = new Date();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+    SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm:ss a");
+    receiptDate.setText(dateFormat.format(now));
+    receiptTime.setText(timeFormat.format(now));
+    
+    // Set all appointment data
+    receiptClientName.setText(clientName);
+    receiptPetName.setText(petName);
+    receiptSchedule.setText(formattedSchedule);
+    receiptAssistant.setText(assistant);
+    receiptTotalBill.setText(String.format("₱%.2f", totalBill));
+    
+    // Configure services text area
+    receiptServices.setLineWrap(true);
+    receiptServices.setWrapStyleWord(true);
+    receiptServices.setEditable(false);
+    receiptServices.setFocusable(false);
+    
+    // Set services text
+    receiptServices.setText(selectedServices);
+    
+    // Make fields non-editable
     setFieldsEditable(false);
-    setVisible(true);
+    
+    // Adjust height based on services
+    adjustFrameHeight(selectedServices);
+}
+  
+    private String generateReceiptNumber() {
+        Random random = new Random();
+        int receiptNum = 100000 + random.nextInt(900000);
+        return String.valueOf(receiptNum);
+    }
+    
+    /**
+ * Adjust frame, panel, and services height based on content
+ * Precisely repositions all elements below the services section
+ */
+/**
+ * Adjust frame, panel, and services height based on content
+ * Ensures all services are visible and properly positioned
+ */
+/**
+ * Adjust frame with explicit component tracking
+ */
+    
+/**
+ * Enhanced adjustment with forced visibility
+ */
+private void adjustFrameHeight(String selectedServices) {
+    // Split services to count lines
+    String[] lines = selectedServices.split("\n");
+    int lineCount = lines.length;
+    
+    // Configure text area
+    receiptServices.setText(selectedServices);
+    receiptServices.setLineWrap(true);
+    receiptServices.setWrapStyleWord(true);
+    
+    // Calculate required height based on font metrics
+    java.awt.FontMetrics fm = receiptServices.getFontMetrics(receiptServices.getFont());
+    int lineHeight = fm.getHeight();
+    int padding = 20; // Extra padding for spacing
+    
+    // Calculate height needed for all lines
+    int calculatedServicesHeight = (lineCount * lineHeight) + padding;
+    
+    // Ensure minimum height
+    calculatedServicesHeight = Math.max(64, calculatedServicesHeight);
+    
+    System.out.println("=== Receipt Adjustment ===");
+    System.out.println("Line count: " + lineCount);
+    System.out.println("Line height: " + lineHeight);
+    System.out.println("Calculated services height: " + calculatedServicesHeight);
+    
+    // **KEY FIX: Update receiptServices bounds within the GroupLayout**
+    receiptServices.setPreferredSize(new Dimension(250, calculatedServicesHeight));
+    receiptServices.setMinimumSize(new Dimension(250, calculatedServicesHeight));
+    receiptServices.setMaximumSize(new Dimension(250, calculatedServicesHeight));
+    
+    // Calculate base heights from initComponents
+    int baseServicesHeight = 64; // Original receiptServices height
+    int heightDifference = calculatedServicesHeight - baseServicesHeight;
+    
+    System.out.println("Height difference: " + heightDifference);
+    
+    // Calculate new receiptServicesPanel height
+    // Panel structure: jLabel7 (16) + gap (12) + receiptServices (variable) + gap (16)
+    int basePanelHeight = 108; // Original panel height from initComponents
+    int newPanelHeight = 16 + 12 + calculatedServicesHeight + 16; // Label + gaps + services + bottom gap
+    
+    receiptServicesPanel.setPreferredSize(new Dimension(301, newPanelHeight));
+    receiptServicesPanel.setMinimumSize(new Dimension(301, newPanelHeight));
+    receiptServicesPanel.setMaximumSize(new Dimension(301, newPanelHeight));
+    
+    System.out.println("New services panel height: " + newPanelHeight);
+    
+    // Calculate panel height difference
+    int panelHeightDifference = newPanelHeight - basePanelHeight;
+    
+    // Calculate new jPanel1 (main container) height
+    // Original: jPanel2 (349) + receiptServicesPanel (108) + jPanel4 (242) + gaps
+    int basePanel1Height = 711;
+    int newPanel1Height = basePanel1Height + panelHeightDifference;
+    
+    jPanel1.setPreferredSize(new Dimension(315, newPanel1Height));
+    jPanel1.setMinimumSize(new Dimension(315, newPanel1Height));
+    jPanel1.setMaximumSize(new Dimension(315, newPanel1Height));
+    
+    System.out.println("New panel1 height: " + newPanel1Height);
+    
+    // Calculate new frame height
+    int baseFrameHeight = 711;
+    int newFrameHeight = baseFrameHeight + panelHeightDifference;
+    
+    this.setSize(313, newFrameHeight);
+    this.setPreferredSize(new Dimension(313, newFrameHeight));
+    
+    System.out.println("New frame height: " + newFrameHeight);
+    
+    // **CRITICAL: Force GroupLayout to recalculate**
+    receiptServicesPanel.invalidate();
+    receiptServicesPanel.validate();
+    receiptServicesPanel.doLayout();
+    
+    receiptServices.invalidate();
+    receiptServices.validate();
+    
+    jPanel1.invalidate();
+    jPanel1.validate();
+    jPanel1.doLayout();
+    
+    this.invalidate();
+    this.validate();
+    
+    // Repaint everything
+    receiptServices.repaint();
+    receiptServicesPanel.repaint();
+    jPanel1.repaint();
+    this.repaint();
+    
+    // Center on screen
+    this.setLocationRelativeTo(null);
+    
+    System.out.println("=== End Adjustment ===");
 }
 
+private void configureServicesDisplay() {
+    receiptServices.setLineWrap(true);
+    receiptServices.setWrapStyleWord(true);
+    receiptServices.setEditable(false);
+    receiptServices.setFocusable(false);
+    receiptServices.setOpaque(true);
+    receiptServices.setBackground(new java.awt.Color(239, 238, 234));
+}
     
-    private void setFieldsEditable(boolean editable) {
-        jTextField2.setEditable(false);
-        jTextField3.setEditable(false);
-        jTextField4.setEditable(false);
-        jTextField5.setEditable(false);
-        jTextField6.setEditable(false);
-        jTextField7.setEditable(false);
-        jTextArea1.setEditable(false);
-        jTextField8.setEditable(false);
-        jTextField9.setEditable(false);
+
+     private void setFieldsEditable(boolean editable) {
+        receiptClientName.setEditable(false);
+        receiptPetName.setEditable(false);
+        receiptServices.setEditable(false);
+        receiptSchedule.setEditable(false);
+        receiptTotalBill.setEditable(false);
+        receiptAssistant.setEditable(false);
+        receiptNumber.setEditable(false);
+        receiptDate.setEditable(false);
+        receiptTime.setEditable(false);
     }
+    
+    
+    /**
+ * Debug method to print all component positions
+ */
+private void debugComponentPositions() {
+    System.out.println("=== Component Positions ===");
+    java.awt.Component[] components = jPanel2.getComponents();
+    for (java.awt.Component comp : components) {
+        java.awt.Rectangle bounds = comp.getBounds();
+        String name = comp.getName();
+        String className = comp.getClass().getSimpleName();
+        System.out.println(className + " at Y=" + bounds.y + " height=" + bounds.height);
+        
+        if (comp instanceof javax.swing.JLabel) {
+            javax.swing.JLabel label = (javax.swing.JLabel) comp;
+            System.out.println("  Text: " + label.getText());
+        }
+    }
+    System.out.println("jPanel2 size: " + jPanel2.getSize());
+    System.out.println("jPanel1 size: " + jPanel1.getSize());
+    System.out.println("Frame size: " + this.getSize());
+    System.out.println("=== End Debug ===");
+}
+//    private void setFieldsEditable(boolean editable) {
+//        receiptClientName.setEditable(false);
+//        receiptPetName.setEditable(false);
+//        receiptServices.setEditable(false);
+//        receiptSchedule.setEditable(false);
+//        receiptTotalBill.setEditable(false);
+//        receiptAssistant.setEditable(false);
+//        receiptNumber.setEditable(false);
+//        receiptDate.setEditable(false);
+//        receiptTime.setEditable(false);
+//    }
     
     private void initiatePrintJob() {
         PrinterJob job = PrinterJob.getPrinterJob();
-        job.setPrintable(this); // 'this' refers to the printFrame itself, which implements Printable
+        job.setPrintable(this);
 
-        // Show the print dialog to the user
         boolean doPrint = job.printDialog();
 
-        // If the user clicks 'Print' in the dialog
         if (doPrint) {
             try {
-                job.print(); // Initiate the printing process
+                job.print();
                 JOptionPane.showMessageDialog(this, "Receipt sent to printer!", "Print Success", JOptionPane.INFORMATION_MESSAGE);
             } catch (PrinterException ex) {
                 JOptionPane.showMessageDialog(this, "Error printing receipt: " + ex.getMessage(), "Print Error", JOptionPane.ERROR_MESSAGE);
-                ex.printStackTrace(); // Print stack trace for debugging
+                ex.printStackTrace();
             } finally {
-                // Optionally dispose the printFrame after print attempt
-                // This will close the receipt window after printing.
                 this.dispose();
             }
         } else {
-            // User cancelled printing, dispose the frame
             this.dispose();
         }
     }
 
 
     // --- IMPLEMENTATION OF THE PRINTABLE INTERFACE ---
-    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+   public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
         if (pageIndex > 0) {
             return NO_SUCH_PAGE;
         }
@@ -94,14 +275,12 @@ public class printFrame extends javax.swing.JFrame implements Printable{
         Graphics2D g2d = (Graphics2D) graphics;
         g2d.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
 
-        // --- DEBUGGING CHECK ---
         if (jPanel1 == null) {
-            System.err.println("ERROR: receiptPanel is null in print() method. It was not initialized correctly.");
-            return NO_SUCH_PAGE; // Cannot print if panel is null
+            System.err.println("ERROR: jPanel1 is null in print() method.");
+            return NO_SUCH_PAGE;
         }
-        // --- END DEBUGGING CHECK ---
 
-        jPanel1.printAll(g2d); // Prints the entire receiptPanel and its contents
+        jPanel1.printAll(g2d);
 
         return PAGE_EXISTS;
     }
@@ -118,279 +297,359 @@ public class printFrame extends javax.swing.JFrame implements Printable{
 
         jTextField1 = new javax.swing.JTextField();
         jPanel1 = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
-        jLabel11 = new javax.swing.JLabel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jTextField6 = new javax.swing.JTextField();
-        jLabel2 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        receiptClientName = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
-        jTextField5 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jTextField7 = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        jTextArea1 = new javax.swing.JTextArea();
-        jLabel9 = new javax.swing.JLabel();
-        jTextField9 = new javax.swing.JTextField();
+        receiptPetName = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        jTextField8 = new javax.swing.JTextField();
-        jLabel10 = new javax.swing.JLabel();
-        jTextField10 = new javax.swing.JTextField();
+        receiptSchedule = new javax.swing.JTextField();
         jLabel12 = new javax.swing.JLabel();
-        jTextField11 = new javax.swing.JTextField();
+        receiptAssistant = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        jLabel16 = new javax.swing.JLabel();
+        jLabel17 = new javax.swing.JLabel();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        receiptNumber = new javax.swing.JTextField();
+        receiptDate = new javax.swing.JTextField();
+        receiptTime = new javax.swing.JTextField();
+        receiptServicesPanel = new javax.swing.JPanel();
+        jLabel7 = new javax.swing.JLabel();
+        receiptServices = new javax.swing.JTextArea();
+        jPanel4 = new javax.swing.JPanel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        receiptTotalBill = new javax.swing.JTextField();
+        jLabel20 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
 
         jTextField1.setText("jTextField1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMaximumSize(new java.awt.Dimension(315, 2147483647));
         setResizable(false);
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setPreferredSize(new java.awt.Dimension(400, 280));
-
-        jPanel3.setBackground(new java.awt.Color(0, 109, 111));
-
-        jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/Green Modern Veterinary Clinic Logo.png"))); // NOI18N
-        jLabel11.setPreferredSize(new java.awt.Dimension(260, 53));
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addContainerGap(116, Short.MAX_VALUE)
-                .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(101, 101, 101))
-        );
-        jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(5, 5, 5)
-                .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, 141, Short.MAX_VALUE)
-                .addContainerGap())
-        );
+        jPanel1.setBackground(new java.awt.Color(204, 204, 204));
+        jPanel1.setMaximumSize(new java.awt.Dimension(315, 32767));
+        jPanel1.setMinimumSize(new java.awt.Dimension(315, 0));
+        jPanel1.setPreferredSize(new java.awt.Dimension(315, 280));
 
         jPanel2.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel2.setMaximumSize(new java.awt.Dimension(300, 2147483647));
+        jPanel2.setMinimumSize(new java.awt.Dimension(300, 350));
+        jPanel2.setPreferredSize(new java.awt.Dimension(300, 0));
+        jPanel2.setVerifyInputWhenFocusTarget(false);
         jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel1.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel1.setText("Client Name:");
-        jPanel2.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 30, -1, -1));
+        jPanel2.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 250, -1, -1));
 
-        jTextField2.setEditable(false);
-        jTextField2.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField2.setBorder(null);
-        jTextField2.setFocusable(false);
-        jTextField2.setPreferredSize(new java.awt.Dimension(200, 30));
-        jPanel2.add(jTextField2, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 20, 158, -1));
-
-        jLabel5.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel5.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel5.setText("Species:");
-        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 280, -1, -1));
-
-        jTextField6.setEditable(false);
-        jTextField6.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField6.setBorder(null);
-        jTextField6.setFocusable(false);
-        jTextField6.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField6.addActionListener(new java.awt.event.ActionListener() {
+        receiptClientName.setEditable(false);
+        receiptClientName.setBackground(new java.awt.Color(255, 255, 255));
+        receiptClientName.setBorder(null);
+        receiptClientName.setFocusable(false);
+        receiptClientName.setPreferredSize(new java.awt.Dimension(200, 30));
+        receiptClientName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField6ActionPerformed(evt);
+                receiptClientNameActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField6, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 280, 157, -1));
-
-        jLabel2.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel2.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel2.setText("Address: ");
-        jPanel2.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 70, 68, -1));
-
-        jTextField3.setEditable(false);
-        jTextField3.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField3.setBorder(null);
-        jTextField3.setFocusable(false);
-        jTextField3.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField3ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jTextField3, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 60, 156, -1));
+        jPanel2.add(receiptClientName, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 250, 160, 15));
 
         jLabel4.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel4.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel4.setText("Pet Name:");
-        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 190, -1, -1));
+        jPanel2.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 270, -1, -1));
 
-        jTextField5.setEditable(false);
-        jTextField5.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField5.setBorder(null);
-        jTextField5.setFocusable(false);
-        jTextField5.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField5.addActionListener(new java.awt.event.ActionListener() {
+        receiptPetName.setEditable(false);
+        receiptPetName.setBackground(new java.awt.Color(255, 255, 255));
+        receiptPetName.setBorder(null);
+        receiptPetName.setFocusable(false);
+        receiptPetName.setPreferredSize(new java.awt.Dimension(200, 30));
+        receiptPetName.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField5ActionPerformed(evt);
+                receiptPetNameActionPerformed(evt);
             }
         });
-        jPanel2.add(jTextField5, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 180, 157, -1));
-
-        jTextField4.setEditable(false);
-        jTextField4.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField4.setBorder(null);
-        jTextField4.setFocusable(false);
-        jTextField4.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField4ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jTextField4, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 100, 158, -1));
-
-        jLabel3.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel3.setText("Contact No.");
-        jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, -1, -1));
-
-        jLabel6.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel6.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel6.setText("Breed:");
-        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 240, -1, -1));
-
-        jTextField7.setEditable(false);
-        jTextField7.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField7.setBorder(null);
-        jTextField7.setFocusable(false);
-        jTextField7.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField7.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField7ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jTextField7, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 230, 158, -1));
-
-        jLabel7.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel7.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel7.setText("Services:");
-        jPanel2.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 20, -1, -1));
-
-        jTextArea1.setEditable(false);
-        jTextArea1.setBackground(new java.awt.Color(239, 238, 234));
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jTextArea1.setBorder(null);
-        jTextArea1.setFocusable(false);
-        jPanel2.add(jTextArea1, new org.netbeans.lib.awtextra.AbsoluteConstraints(270, 40, 180, 290));
-
-        jLabel9.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel9.setText("Total Bill:");
-        jPanel2.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 420, -1, -1));
-
-        jTextField9.setEditable(false);
-        jTextField9.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField9.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
-        jTextField9.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        jTextField9.setBorder(null);
-        jTextField9.setFocusable(false);
-        jTextField9.setPreferredSize(new java.awt.Dimension(200, 30));
-        jTextField9.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField9ActionPerformed(evt);
-            }
-        });
-        jPanel2.add(jTextField9, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 410, 160, -1));
+        jPanel2.add(receiptPetName, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 270, 160, 15));
 
         jLabel8.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel8.setText("Assistant:");
-        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 330, -1, -1));
+        jPanel2.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 290, -1, -1));
 
-        jTextField8.setEditable(false);
-        jTextField8.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField8.setBorder(null);
-        jTextField8.setFocusable(false);
-        jTextField8.setPreferredSize(new java.awt.Dimension(200, 30));
-        jPanel2.add(jTextField8, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 370, 157, -1));
-
-        jLabel10.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
-        jLabel10.setText("Email:");
-        jPanel2.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 150, -1, -1));
-
-        jTextField10.setEditable(false);
-        jTextField10.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField10.setBorder(null);
-        jPanel2.add(jTextField10, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 140, 160, 30));
+        receiptSchedule.setEditable(false);
+        receiptSchedule.setBackground(new java.awt.Color(255, 255, 255));
+        receiptSchedule.setBorder(null);
+        receiptSchedule.setFocusable(false);
+        receiptSchedule.setPreferredSize(new java.awt.Dimension(200, 30));
+        receiptSchedule.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                receiptScheduleActionPerformed(evt);
+            }
+        });
+        jPanel2.add(receiptSchedule, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 310, 160, 15));
 
         jLabel12.setBackground(new java.awt.Color(46, 46, 46));
-        jLabel12.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         jLabel12.setText("Schedule:");
-        jPanel2.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 370, -1, -1));
+        jPanel2.add(jLabel12, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 310, -1, -1));
 
-        jTextField11.setEditable(false);
-        jTextField11.setBackground(new java.awt.Color(239, 238, 234));
-        jTextField11.setBorder(null);
-        jPanel2.add(jTextField11, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 330, 160, 30));
+        receiptAssistant.setEditable(false);
+        receiptAssistant.setBackground(new java.awt.Color(255, 255, 255));
+        receiptAssistant.setBorder(null);
+        receiptAssistant.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                receiptAssistantActionPerformed(evt);
+            }
+        });
+        jPanel2.add(receiptAssistant, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 290, 160, 15));
+
+        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel11.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/Green Modern Veterinary Clinic Logo.png"))); // NOI18N
+        jLabel11.setPreferredSize(new java.awt.Dimension(320, 53));
+        jPanel2.add(jLabel11, new org.netbeans.lib.awtextra.AbsoluteConstraints(-10, 20, 320, 80));
+
+        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel14.setText("===========================================");
+        jPanel2.add(jLabel14, new org.netbeans.lib.awtextra.AbsoluteConstraints(-20, 10, 330, -1));
+
+        jLabel15.setText("Time:");
+        jPanel2.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 190, 90, -1));
+
+        jLabel16.setText("Receipt No:");
+        jPanel2.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 150, 80, -1));
+
+        jLabel17.setText("Date:");
+        jPanel2.add(jLabel17, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 170, 70, -1));
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel3.setText("-----------------------------------------------------");
+        jPanel2.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(-10, 110, 320, -1));
+
+        jLabel5.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel5.setText("-----------------------------------------------------");
+        jPanel2.add(jLabel5, new org.netbeans.lib.awtextra.AbsoluteConstraints(-10, 210, 320, -1));
+
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel6.setText("-----------------------------------------------------");
+        jPanel2.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 330, 350, -1));
+
+        receiptNumber.setEditable(false);
+        receiptNumber.setBackground(new java.awt.Color(255, 255, 255));
+        receiptNumber.setBorder(null);
+        receiptNumber.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                receiptNumberActionPerformed(evt);
+            }
+        });
+        jPanel2.add(receiptNumber, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 150, 160, 15));
+
+        receiptDate.setEditable(false);
+        receiptDate.setBackground(new java.awt.Color(255, 255, 255));
+        receiptDate.setBorder(null);
+        jPanel2.add(receiptDate, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 170, 160, 15));
+
+        receiptTime.setEditable(false);
+        receiptTime.setBackground(new java.awt.Color(255, 255, 255));
+        receiptTime.setBorder(null);
+        jPanel2.add(receiptTime, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 190, 160, 15));
+
+        receiptServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
+        receiptServicesPanel.setMaximumSize(new java.awt.Dimension(300, 32767));
+        receiptServicesPanel.setMinimumSize(new java.awt.Dimension(300, 100));
+        receiptServicesPanel.setPreferredSize(new java.awt.Dimension(300, 0));
+
+        jLabel7.setBackground(new java.awt.Color(46, 46, 46));
+        jLabel7.setText("SERVICES:");
+
+        receiptServices.setEditable(false);
+        receiptServices.setBackground(new java.awt.Color(255, 255, 255));
+        receiptServices.setColumns(20);
+        receiptServices.setRows(5);
+        receiptServices.setBorder(null);
+        receiptServices.setFocusable(false);
+
+        javax.swing.GroupLayout receiptServicesPanelLayout = new javax.swing.GroupLayout(receiptServicesPanel);
+        receiptServicesPanel.setLayout(receiptServicesPanelLayout);
+        receiptServicesPanelLayout.setHorizontalGroup(
+            receiptServicesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(receiptServicesPanelLayout.createSequentialGroup()
+                .addGap(30, 30, 30)
+                .addGroup(receiptServicesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(receiptServices, javax.swing.GroupLayout.PREFERRED_SIZE, 250, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel7))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        receiptServicesPanelLayout.setVerticalGroup(
+            receiptServicesPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(receiptServicesPanelLayout.createSequentialGroup()
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(receiptServices, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jPanel4.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel4.setMaximumSize(new java.awt.Dimension(300, 32767));
+        jPanel4.setMinimumSize(new java.awt.Dimension(300, 100));
+        jPanel4.setPreferredSize(new java.awt.Dimension(300, 0));
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel10.setText("-----------------------------------------------------");
+
+        jLabel18.setFont(new java.awt.Font("Segoe UI", 1, 16)); // NOI18N
+        jLabel18.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel18.setText("Thank you for trusting iPetCare!");
+
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel13.setText("===========================================");
+
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        jLabel2.setText("-----------------------------------------------------");
+
+        jLabel19.setBackground(new java.awt.Color(46, 46, 46));
+        jLabel19.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel19.setText("TOTAL BILL:");
+
+        receiptTotalBill.setEditable(false);
+        receiptTotalBill.setBackground(new java.awt.Color(255, 255, 255));
+        receiptTotalBill.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        receiptTotalBill.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        receiptTotalBill.setBorder(null);
+        receiptTotalBill.setFocusable(false);
+        receiptTotalBill.setPreferredSize(new java.awt.Dimension(200, 30));
+        receiptTotalBill.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                receiptTotalBillActionPerformed(evt);
+            }
+        });
+
+        jLabel20.setBackground(new java.awt.Color(46, 46, 46));
+        jLabel20.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel20.setText("For inquiries:");
+
+        jLabel9.setBackground(new java.awt.Color(46, 46, 46));
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("0912-345-6789");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(jLabel10)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(32, 32, 32)
+                        .addComponent(jLabel19)
+                        .addGap(18, 18, 18)
+                        .addComponent(receiptTotalBill, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(jLabel18, javax.swing.GroupLayout.PREFERRED_SIZE, 284, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addGap(61, 61, 61)
+                                .addComponent(jLabel20)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel9))
+                            .addGroup(jPanel4Layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel19)
+                    .addComponent(receiptTotalBill, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(2, 2, 2)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel18)
+                .addGap(29, 29, 29)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel20)
+                    .addComponent(jLabel9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel13)
+                .addContainerGap(58, Short.MAX_VALUE))
+        );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(receiptServicesPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 15, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 349, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(receiptServicesPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(26, Short.MAX_VALUE))
         );
+
+        jPanel2.getAccessibleContext().setAccessibleName("");
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
-        setSize(new java.awt.Dimension(476, 764));
+        setSize(new java.awt.Dimension(330, 735));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jTextField9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField9ActionPerformed
+    private void receiptTotalBillActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptTotalBillActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField9ActionPerformed
+    }//GEN-LAST:event_receiptTotalBillActionPerformed
 
-    private void jTextField7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField7ActionPerformed
+    private void receiptPetNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptPetNameActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField7ActionPerformed
+    }//GEN-LAST:event_receiptPetNameActionPerformed
 
-    private void jTextField5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField5ActionPerformed
+    private void receiptClientNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptClientNameActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField5ActionPerformed
+    }//GEN-LAST:event_receiptClientNameActionPerformed
 
-    private void jTextField3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField3ActionPerformed
+    private void receiptAssistantActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptAssistantActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField3ActionPerformed
+    }//GEN-LAST:event_receiptAssistantActionPerformed
 
-    private void jTextField4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField4ActionPerformed
+    private void receiptScheduleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptScheduleActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField4ActionPerformed
+    }//GEN-LAST:event_receiptScheduleActionPerformed
 
-    private void jTextField6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField6ActionPerformed
+    private void receiptNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_receiptNumberActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField6ActionPerformed
+    }//GEN-LAST:event_receiptNumberActionPerformed
 
     /**
      * @param args the command line arguments
@@ -432,7 +691,15 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
+    private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -442,18 +709,17 @@ public class printFrame extends javax.swing.JFrame implements Printable{
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
-    public javax.swing.JTextArea jTextArea1;
+    private javax.swing.JPanel jPanel4;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    public javax.swing.JTextField jTextField2;
-    public javax.swing.JTextField jTextField3;
-    public javax.swing.JTextField jTextField4;
-    public javax.swing.JTextField jTextField5;
-    public javax.swing.JTextField jTextField6;
-    public javax.swing.JTextField jTextField7;
-    public javax.swing.JTextField jTextField8;
-    public javax.swing.JTextField jTextField9;
+    private javax.swing.JTextField receiptAssistant;
+    public javax.swing.JTextField receiptClientName;
+    private javax.swing.JTextField receiptDate;
+    private javax.swing.JTextField receiptNumber;
+    public javax.swing.JTextField receiptPetName;
+    public javax.swing.JTextField receiptSchedule;
+    private javax.swing.JTextArea receiptServices;
+    private javax.swing.JPanel receiptServicesPanel;
+    private javax.swing.JTextField receiptTime;
+    public javax.swing.JTextField receiptTotalBill;
     // End of variables declaration//GEN-END:variables
 }
