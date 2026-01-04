@@ -62,18 +62,24 @@ public class logInFrame extends javax.swing.JFrame {
         jPanel3.setPreferredSize(new java.awt.Dimension(260, 290));
         jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Dubai", 1, 14)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setText("Welcome");
         jPanel3.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(133, 6, 79, -1));
 
-        jLabel2.setText("Email");
+        jLabel2.setFont(new java.awt.Font("Dubai", 1, 12)); // NOI18N
+        jLabel2.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel2.setText("Email: ");
         jPanel3.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(48, 56, -1, -1));
         jPanel3.add(email, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 53, 143, -1));
 
+        jLabel3.setFont(new java.awt.Font("Dubai", 1, 12)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
         jLabel3.setText("Password:");
         jPanel3.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(24, 96, -1, -1));
         jPanel3.add(password, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 93, 143, -1));
 
+        logIn.setFont(new java.awt.Font("Dubai", 0, 12)); // NOI18N
         logIn.setText("Log In");
         logIn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -82,6 +88,7 @@ public class logInFrame extends javax.swing.JFrame {
         });
         jPanel3.add(logIn, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 162, 143, -1));
 
+        jComboBox1.setFont(new java.awt.Font("Dubai", 0, 12)); // NOI18N
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Staff", "Admin" }));
         jPanel3.add(jComboBox1, new org.netbeans.lib.awtextra.AbsoluteConstraints(89, 128, 143, -1));
 
@@ -129,7 +136,7 @@ public class logInFrame extends javax.swing.JFrame {
                 return;
             }
 
-            String sql = "SELECT * FROM reports WHERE email = ? AND password = ? AND userRole = ? AND status = 'true'";
+            String sql = "SELECT user, userRole, name, email, status FROM reports WHERE email = ? AND password = ? AND userRole = ? AND status = 'true'";
             pst = con.prepareStatement(sql);
             pst.setString(1, enteredEmail);
             pst.setString(2, enteredPassword);
@@ -138,12 +145,14 @@ public class logInFrame extends javax.swing.JFrame {
             rs = pst.executeQuery();
 
             if (rs.next()) {
-                String userRole = rs.getString("userRole");
-                JOptionPane.showMessageDialog(null, "Login Successful! Welcome, " + userRole + "!");
-                
-dispose();
-                new homeFrame(userRole).setVisible(true);
-                dispose();
+    String userRole = rs.getString("userRole");
+    JOptionPane.showMessageDialog(null, "Login Successful! Welcome, " + userRole + "!");
+    
+    // Open home frame with user role
+    new homeFrame(userRole).setVisible(true);
+    
+    // Close login frame
+    dispose();
             } else {
                 JOptionPane.showMessageDialog(null, "Incorrect Email, Password, or Role. Please try again.",
                                                 "Login Failed", JOptionPane.ERROR_MESSAGE);
@@ -194,10 +203,10 @@ dispose();
 
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new logInFrame().setVisible(true);
+                new logInFrame().setVisible(true); 
             }
-        });
-    }
+            });
+       }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextField email;

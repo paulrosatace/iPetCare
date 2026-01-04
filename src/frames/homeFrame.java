@@ -12,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.sql.ResultSetMetaData;
 import java.text.ParseException;
@@ -80,20 +82,26 @@ Color defaultcolor = new Color(0, 0, 0);
         recordsTable.getColumnModel().getColumn(6).setCellRenderer(new MultiLineCellRenderer());
     }
     
+//    private void setupServicesColumnRenderer() {
+//        recordsTable.getColumnModel().getColumn(6).setCellRenderer(new MultiLineCellRenderer());
+//    }
+    
     public homeFrame() {
         initComponents();
 
-    this.setSize(1400, 969);  // Width: 1400, Height: 969
-    this.setMinimumSize(new Dimension(1400, 969));
-    this.setMaximumSize(new Dimension(1400, 969));
-    this.setPreferredSize(new Dimension(1400, 969));
+     this.setLocationRelativeTo(null);
+    
+    this.setSize(1300, 800);  // Width: 1400, Height: 969
+    this.setMinimumSize(new Dimension(1400, 850));
+    this.setMaximumSize(new Dimension(1400, 850));
+    this.setPreferredSize(new Dimension(1400, 850));
     this.setResizable(false);  // Prevent resizing
     
     // ===== FIX PANEL SIZES =====
     // Fix jPanel1 (main container)
-    jPanel1.setMinimumSize(new Dimension(1400, 969));
-    jPanel1.setMaximumSize(new Dimension(1400, 969));
-    jPanel1.setPreferredSize(new Dimension(1400, 969));
+    jPanel1.setMinimumSize(new Dimension(1400, 850));
+    jPanel1.setMaximumSize(new Dimension(1400, 850));
+    jPanel1.setPreferredSize(new Dimension(1400, 850));
     
     // Fix jPanel2 (header/navigation)
     jPanel2.setMinimumSize(new Dimension(1400, 73));
@@ -144,8 +152,8 @@ Color defaultcolor = new Color(0, 0, 0);
     
      jScrollPane2.setVerticalScrollBarPolicy(
         javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-    jScrollPane2.setHorizontalScrollBarPolicy(
-        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//    jScrollPane2.setHorizontalScrollBarPolicy(
+//        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     
     // Make table fill viewport height
     recordsTable.setFillsViewportHeight(true);
@@ -265,6 +273,8 @@ contactTextfield.addKeyListener(new KeyAdapter() {
 
     // Load all appointments into jTable1
     loadJTable1();
+    setupJTable1Styling();
+    setupRecordsTableStyling();
         
         DefaultTableModel recordsModel = new DefaultTableModel(
             new Object[][]{},
@@ -302,13 +312,32 @@ contactTextfield.addKeyListener(new KeyAdapter() {
         
 
             // Initialize button appearance
-    appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
-    recordsButton.setBackground(new java.awt.Color(0, 0, 0));
-    settingsButton.setBackground(new java.awt.Color(0, 0, 0));
+//    appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
+//    recordsButton.setBackground(new java.awt.Color(0, 0, 0));
+//    settingsButton.setBackground(new java.awt.Color(0, 0, 0));
 
+    // Highlight appointments button by default
     // Highlight appointments button by default
     highlightButtonBorder(appointmentsButton);
     records();
+    
+    recordsTable.setMinimumSize(null);
+    recordsTable.setMaximumSize(null);
+    
+    // CALL NEW SETUP METHODS
+    setupNavigationButtons();
+    setupServiceButtons();
+    setupTableSelectionColors();
+    setupJTable1ToggleSelection();
+    
+    // Show boarding panel first when entering services
+    boardingServicesPanel.setVisible(true);
+    groomingServicesPanel.setVisible(false);
+    petWalkingServicesPanel.setVisible(false);
+    dayCareServicesPanel.setVisible(false);
+    trainingServicesPanel.setVisible(false);
+    miscellaneousServicesPanel.setVisible(false);
+    highlightServiceButtonBorder(boardingButton);
     
     recordsTable.setMinimumSize(null);
 recordsTable.setMaximumSize(null);
@@ -318,16 +347,18 @@ recordsTable.setMaximumSize(null);
     public homeFrame(String userRole) {
     initComponents();
     
+    this.setLocationRelativeTo(null);
+    
     this.setSize(1400, 969);
-    this.setMinimumSize(new Dimension(1400, 969));
-    this.setMaximumSize(new Dimension(1400, 969));
-    this.setPreferredSize(new Dimension(1400, 969));
+    this.setMinimumSize(new Dimension(1400, 850));
+    this.setMaximumSize(new Dimension(1400, 8500));
+    this.setPreferredSize(new Dimension(1400, 850));
     this.setResizable(false);
     
     // ===== FIX PANEL SIZES =====
-    jPanel1.setMinimumSize(new Dimension(1400, 969));
-    jPanel1.setMaximumSize(new Dimension(1400, 969));
-    jPanel1.setPreferredSize(new Dimension(1400, 969));
+    jPanel1.setMinimumSize(new Dimension(1400, 850));
+    jPanel1.setMaximumSize(new Dimension(1400, 850));
+    jPanel1.setPreferredSize(new Dimension(1400, 850));
     
     jPanel2.setMinimumSize(new Dimension(1400, 73));
     jPanel2.setMaximumSize(new Dimension(1400, 73));
@@ -359,8 +390,8 @@ recordsTable.setMaximumSize(null);
     
     jScrollPane2.setVerticalScrollBarPolicy(
         javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-    jScrollPane2.setHorizontalScrollBarPolicy(
-        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+//    jScrollPane2.setHorizontalScrollBarPolicy(
+//        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
     
     recordsTable.setFillsViewportHeight(true);
     
@@ -370,7 +401,10 @@ recordsTable.setMaximumSize(null);
     // Load appointments and records
     loadJTable1();
     loadRecordsTable();
+    setupJTable1Styling();
     
+    setupRecordsTableStyling();
+
     
     // NOW adjust column widths AFTER table is loaded
     adjustRecordsTableColumnWidths();
@@ -444,8 +478,198 @@ recordsTable.setMaximumSize(null);
     });
     loadRecordsTable(); 
     records();
+    
+    // CALL NEW SETUP METHODS
+    setupNavigationButtons();
+    setupServiceButtons();
+    setupTableSelectionColors();
+    setupJTable1ToggleSelection();
+    
+    // Show boarding panel first when entering services
+    boardingServicesPanel.setVisible(true);
+    groomingServicesPanel.setVisible(false);
+    petWalkingServicesPanel.setVisible(false);
+    dayCareServicesPanel.setVisible(false);
+    trainingServicesPanel.setVisible(false);
+    miscellaneousServicesPanel.setVisible(false);
+    highlightServiceButtonBorder(boardingButton);
+    
     }
 
+/**
+ * Apply rounded border and header styling to jTable1
+ */
+private void setupJTable1Styling() {
+    // Set rounded border with #003333 color
+    javax.swing.border.Border lineBorder = BorderFactory.createLineBorder(
+        new Color(0, 51, 51), 2);
+    javax.swing.border.Border roundedBorder = new javax.swing.border.CompoundBorder(
+        lineBorder,
+        BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    );
+    jScrollPane1.setBorder(roundedBorder);
+    
+    // Style the header with #077A7D
+    JTableHeader header = jTable1.getTableHeader();
+    header.setBackground(new Color(7, 122, 125));
+    header.setForeground(Color.WHITE);
+    header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    header.setPreferredSize(new Dimension(header.getWidth(), 30));
+}
+
+/**
+ * Apply rounded border and header styling to recordsTable
+ */
+private void setupRecordsTableStyling() {
+    // Set rounded border with #003333 color
+    javax.swing.border.Border lineBorder = BorderFactory.createLineBorder(
+        new Color(0, 51, 51), 2);
+    javax.swing.border.Border roundedBorder = new javax.swing.border.CompoundBorder(
+        lineBorder,
+        BorderFactory.createEmptyBorder(5, 5, 5, 5)
+    );
+    jScrollPane2.setBorder(roundedBorder);
+    
+    // Style the header with #077A7D
+    JTableHeader header = recordsTable.getTableHeader();
+    header.setBackground(new Color(7, 122, 125));
+    header.setForeground(Color.WHITE);
+    header.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    header.setPreferredSize(new Dimension(header.getWidth(), 30));
+}
+    
+     private void setupNavigationButtons() {
+    // Remove background colors and set up borders only
+    appointmentsButton.setContentAreaFilled(false);
+    appointmentsButton.setOpaque(false);
+    appointmentsButton.setFocusPainted(false);
+    appointmentsButton.setBorderPainted(true);
+    
+    recordsButton.setContentAreaFilled(false);
+    recordsButton.setOpaque(false);
+    recordsButton.setFocusPainted(false);
+    recordsButton.setBorderPainted(true);
+    
+    settingsButton.setContentAreaFilled(false);
+    settingsButton.setOpaque(false);
+    settingsButton.setFocusPainted(false);
+    settingsButton.setBorderPainted(true);
+    
+    // Set initial borders (transparent)
+    appointmentsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
+    recordsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
+    settingsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
+}
+
+    private void setupServiceButtons() {
+    // Set white backgrounds for all service buttons
+    boardingButton.setBackground(Color.WHITE);
+    petwalkingButton.setBackground(Color.WHITE);
+    miscellaneousButton.setBackground(Color.WHITE);
+    groomingButton.setBackground(Color.WHITE);
+    daycareButton.setBackground(Color.WHITE);
+    trainingButton.setBackground(Color.WHITE);
+    
+    // Make sure they're opaque
+    boardingButton.setOpaque(true);
+    petwalkingButton.setOpaque(true);
+    miscellaneousButton.setOpaque(true);
+    groomingButton.setOpaque(true);
+    daycareButton.setOpaque(true);
+    trainingButton.setOpaque(true);
+    
+    // Set initial borders
+    boardingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    petwalkingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    miscellaneousButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    groomingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    daycareButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    trainingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+}
+    
+    private void setupTableSelectionColors() {
+    // Set selection color to #CFEFEF for jTable1
+    jTable1.setSelectionBackground(new Color(0xCF, 0xEF, 0xEF));
+    jTable1.setSelectionForeground(Color.BLACK);
+    
+    // Set selection color to #CFEFEF for recordsTable
+    recordsTable.setSelectionBackground(new Color(0xCF, 0xEF, 0xEF));
+    recordsTable.setSelectionForeground(Color.BLACK);
+}
+    
+    private void setupJTable1ToggleSelection() {
+    jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    
+    // Remove old mouse listeners
+    MouseListener[] listeners = jTable1.getMouseListeners();
+    for (MouseListener listener : listeners) {
+        if (listener.getClass().getName().contains("homeFrame")) {
+            jTable1.removeMouseListener(listener);
+        }
+    }
+    
+    jTable1.addMouseListener(new MouseAdapter() {
+        private int lastSelectedRow = -1;
+        
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int clickedRow = jTable1.rowAtPoint(e.getPoint());
+            
+            // If clicking outside table area
+            if (clickedRow == -1) {
+                jTable1.clearSelection();
+                selectedAppointmentId = -1;
+                if (fieldsLoaded) {
+                    clearFormFields();
+                    fieldsLoaded = false;
+                }
+                lastSelectedRow = -1;
+                return;
+            }
+            
+            // Toggle selection on same row
+            if (clickedRow == lastSelectedRow && jTable1.isRowSelected(clickedRow)) {
+                jTable1.clearSelection();
+                selectedAppointmentId = -1;
+                if (fieldsLoaded) {
+                    clearFormFields();
+                    fieldsLoaded = false;
+                }
+                lastSelectedRow = -1;
+            } else {
+                // New row selected
+                DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+                int clickedId = (int) model.getValueAt(clickedRow, 4);
+                
+                if (fieldsLoaded && clickedId != selectedAppointmentId) {
+                    clearFormFields();
+                    fieldsLoaded = false;
+                }
+                
+                selectedAppointmentId = clickedId;
+                lastSelectedRow = clickedRow;
+                System.out.println("Selected appointment ID: " + selectedAppointmentId);
+            }
+        }
+    });
+    
+    // Add listener to scroll pane for clicks outside table
+    jScrollPane1.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            Point p = e.getPoint();
+            Point tablePoint = SwingUtilities.convertPoint(jScrollPane1, p, jTable1);
+            if (!jTable1.getBounds().contains(tablePoint)) {
+                jTable1.clearSelection();
+                selectedAppointmentId = -1;
+                if (fieldsLoaded) {
+                    clearFormFields();
+                    fieldsLoaded = false;
+                }
+            }
+        }
+    });
+}
     
     private void adjustRecordsTableColumnWidths() {
     // Get the column model
@@ -524,58 +748,51 @@ recordsTable.setMaximumSize(null);
 }
 
     
-    
     public void records() {
-    // Remove any hardcoded height restrictions
-//    jScrollPane2.setPreferredSize(null);
-//    jScrollPane2.setMinimumSize(new java.awt.Dimension(0, 0));
-//    jScrollPane2.setMaximumSize(null);
-
-    // Force proper scrolling behavior
     jScrollPane2.setVerticalScrollBarPolicy(
         javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
     );
-////    jScrollPane2.setHorizontalScrollBarPolicy(
-////        javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-////    );
-    
-    // Ensure table fills viewport
     recordsTable.setFillsViewportHeight(true);
-}
+    }
 
-    
-    
-    
     private void highlightButtonBorder(javax.swing.JButton targetButton) {
-    // Reset all buttons to default
-    appointmentsButton.setBorder(null);
-    recordsButton.setBorder(null);
-    settingsButton.setBorder(null);
+    // Reset all buttons to transparent borders
+    appointmentsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
+    recordsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
+    settingsButton.setBorder(BorderFactory.createLineBorder(new Color(0, 0, 0, 0), 3));
     
-    appointmentsButton.setBackground(new java.awt.Color(0, 0, 0));
-    recordsButton.setBackground(new java.awt.Color(0, 0, 0));
-    settingsButton.setBackground(new java.awt.Color(0, 0, 0));
+    // NO BACKGROUND CHANGES - buttons stay transparent
     
-    // Highlight the target button with border
+    // Highlight the target button with border only
     targetButton.setBorder(javax.swing.BorderFactory.createLineBorder(
-        new java.awt.Color(0, 128, 129), 2));
-    targetButton.setBackground(new java.awt.Color(0, 0, 0));
+        new java.awt.Color(7, 122, 125), 3));
 }
     
-    private void highlightServiceButtonBorder(javax.swing.JButton targetButton) {
-    // Reset all service buttons to default
+      private void highlightServiceButtonBorder(javax.swing.JButton targetButton) {
+    // Reset all service buttons to default border, KEEP WHITE BACKGROUND
     boardingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    boardingButton.setBackground(Color.WHITE);
+    
     petwalkingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    petwalkingButton.setBackground(Color.WHITE);
+    
     miscellaneousButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    miscellaneousButton.setBackground(Color.WHITE);
+    
     groomingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    groomingButton.setBackground(Color.WHITE);
+    
     daycareButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    daycareButton.setBackground(Color.WHITE);
+    
     trainingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+    trainingButton.setBackground(Color.WHITE);
     
-    // Highlight the target button with teal border
+    // Highlight the target button with teal border, KEEP WHITE BACKGROUND
     targetButton.setBorder(javax.swing.BorderFactory.createLineBorder(
-        new java.awt.Color(0, 128, 129), 3));
+        new java.awt.Color(7, 122, 125), 2));
+    targetButton.setBackground(Color.WHITE);
 }
-    
     
     
     private void disableRecordsTableEditing() {
@@ -679,8 +896,51 @@ private String capitalizeFirstLetter(String text) {
     
     return capitalized.toString().trim();
 }
+//
+//    private void openAppointmentFromRecords() {
+//    int row = recordsTable.getSelectedRow();
+//        if (row == -1) return;
+//        String Id = recordsTable.getValueAt(row, 0).toString();
+//        String petName = recordsTable.getValueAt(row, 1).toString();
+//        String ownerName = recordsTable.getValueAt(row, 2).toString();
+//        String service = recordsTable.getValueAt(row, 3).toString();
+//        String date = recordsTable.getValueAt(row, 4).toString();
+//        cards.show(jPanel10, "appointmentsPanel");
+//        txtAppointmentId.setText(Id);
+//        petNameTextfield.setText(petName);
+//        classNameTextfield.setText(ownerName);
+//        servicebutton.setText(service);
+//        try {
+//            Date parsedDate = new SimpleDateFormat("yyyy-MM-dd").parse(date);
+//            jDateChooser1.setDate(parsedDate);
+//        } catch (ParseException e) {
+//            e.printStackTrace();
+//        }
+//    }
+//
+//    /**
+// * Capitalize the first letter of each word in a string
+// */
+//private String capitalizeFirstLetter(String text) {
+//    if (text == null || text.trim().isEmpty()) {
+//        return text;
+//    }
+//    
+//    String[] words = text.trim().split("\\s+");
+//    StringBuilder capitalized = new StringBuilder();
+//    
+//    for (String word : words) {
+//        if (word.length() > 0) {
+//            capitalized.append(Character.toUpperCase(word.charAt(0)))
+//                       .append(word.substring(1).toLowerCase())
+//                       .append(" ");
+//        }
+//    }
+//    
+//    return capitalized.toString().trim();
+//}
     
-    private void loadAppointmentById(String id) {
+   private void loadAppointmentById(String id) {
      try (Connection con = jdbcConnection.getConnection()) {
             PreparedStatement ps = con.prepareStatement("SELECT * FROM appointments WHERE id = ?");
             ps.setInt(1, Integer.parseInt(id));
@@ -750,7 +1010,7 @@ private String capitalizeFirstLetter(String text) {
 }
     
     
-   private void setupRecordDoubleClick() {
+  private void setupRecordDoubleClick() {
     recordsTable.addMouseListener(new MouseAdapter() {
         @Override
         public void mouseClicked(MouseEvent e) {
@@ -784,7 +1044,6 @@ private String capitalizeFirstLetter(String text) {
         }
     });
 }
-   
    // NEW METHOD: Load fields from database by ID
 // NEW METHOD: Load fields from database by ID
 private void loadFieldsFromDatabase(int id) {
@@ -927,9 +1186,7 @@ private void loadFieldsFromDatabase(int id) {
         jTable1.getColumnModel().getColumn(7).setHeaderValue("Services");
         jTable1.getTableHeader().repaint();
     }
-
-
-    public void addSelectedServices(String services) {
+  public void addSelectedServices(String services) {
         jTextArea1.setText(services);
         JOptionPane.showMessageDialog(this, "Selected Services: " + services, "Services Added", JOptionPane.INFORMATION_MESSAGE);
     }
@@ -980,7 +1237,7 @@ class MultiLineCellRenderer extends JTextArea
     loadRecordsTable("");
 }
 
-    private void loadRecordsTable(String filter) {
+     private void loadRecordsTable(String filter) {
     DefaultTableModel recordsModel = (DefaultTableModel) recordsTable.getModel();
     recordsModel.setRowCount(0);
 
@@ -1197,6 +1454,12 @@ private void loadAppointmentForEditing(String Id) {
         jCheckBox1 = new javax.swing.JCheckBox();
         jCheckBox2 = new javax.swing.JCheckBox();
         jCheckBox3 = new javax.swing.JCheckBox();
+        jCheckBox26 = new javax.swing.JCheckBox();
+        jCheckBox27 = new javax.swing.JCheckBox();
+        jCheckBox28 = new javax.swing.JCheckBox();
+        jCheckBox29 = new javax.swing.JCheckBox();
+        jCheckBox30 = new javax.swing.JCheckBox();
+        jCheckBox31 = new javax.swing.JCheckBox();
         jCheckBox4 = new javax.swing.JCheckBox();
         jCheckBox5 = new javax.swing.JCheckBox();
         jCheckBox6 = new javax.swing.JCheckBox();
@@ -1252,6 +1515,9 @@ private void loadAppointmentForEditing(String Id) {
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
         appointmentCount = new javax.swing.JLabel();
+        jLabel18 = new javax.swing.JLabel();
+        jLabel19 = new javax.swing.JLabel();
+        jLabel20 = new javax.swing.JLabel();
 
         jMenuItem1.setText("jMenuItem1");
 
@@ -1303,7 +1569,7 @@ private void loadAppointmentForEditing(String Id) {
                 appointmentsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(appointmentsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(980, 20, -1, -1));
+        jPanel2.add(appointmentsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1010, 20, -1, -1));
 
         recordsButton.setBackground(new java.awt.Color(0, 0, 0));
         recordsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -1328,7 +1594,7 @@ private void loadAppointmentForEditing(String Id) {
                 recordsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(recordsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1130, 20, -1, -1));
+        jPanel2.add(recordsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1150, 20, -1, -1));
 
         settingsButton.setBackground(new java.awt.Color(0, 0, 0));
         settingsButton.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -1350,7 +1616,7 @@ private void loadAppointmentForEditing(String Id) {
                 settingsButtonActionPerformed(evt);
             }
         });
-        jPanel2.add(settingsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1240, 20, -1, -1));
+        jPanel2.add(settingsButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(1260, 20, -1, -1));
 
         jPanel1.add(jPanel2, java.awt.BorderLayout.NORTH);
 
@@ -1399,7 +1665,7 @@ private void loadAppointmentForEditing(String Id) {
         jButton7.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton7.setForeground(new java.awt.Color(255, 255, 255));
         jButton7.setText("About Us");
-        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 102, 102), 2));
+        jButton7.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(7, 122, 125), 4));
         jButton7.setPreferredSize(new java.awt.Dimension(130, 100));
         jButton7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1411,7 +1677,7 @@ private void loadAppointmentForEditing(String Id) {
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jButton1.setForeground(new java.awt.Color(255, 255, 255));
         jButton1.setText("Log out");
-        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 153, 153), 2));
+        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(7, 122, 125), 4));
         jButton1.setPreferredSize(new java.awt.Dimension(130, 100));
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1442,55 +1708,53 @@ private void loadAppointmentForEditing(String Id) {
 
         aboutUsPanel.setBackground(new java.awt.Color(244, 247, 247));
 
-        jLabel14.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
+        jLabel14.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel14.setText("MISSION");
 
         jTextArea2.setEditable(false);
-        jTextArea2.setBackground(new java.awt.Color(153, 153, 153));
+        jTextArea2.setBackground(new java.awt.Color(244, 247, 247));
         jTextArea2.setColumns(20);
-        jTextArea2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jTextArea2.setFont(new java.awt.Font("Dubai", 1, 14)); // NOI18N
         jTextArea2.setRows(5);
-        jTextArea2.setText("Our vision is to be the most reliable and innovative digital pet care solution,\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\nempowering pet owners and professionals through smart tools, seamless experiences, and a shared love for animals.\nto deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care.  \nWe strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking medical records.\n\n");
+        jTextArea2.setText(" Our vision is to be the most reliable and innovative digital pet care solution, to deliver compassionate, \n convenient, and high-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n\n We strive to create a trusted platform that supports pet owners with everything from scheduling appointments to tracking\n medical records empowering pet owners and professionals through smart tools, seamless experiences, and a shared love\n for animals to deliver compassionate,  convenient, and high-quality pet services that ensure the health, happiness, and\n well-being of every pet in our care. We strive to create a trusted platform that supports pet owners with everything from\n scheduling appointments to tracking medical records.\n\n");
+        jTextArea2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
 
-        jLabel17.setFont(new java.awt.Font("Segoe UI Black", 1, 18)); // NOI18N
+        jLabel17.setFont(new java.awt.Font("Dialog", 1, 18)); // NOI18N
         jLabel17.setText("VISION");
 
-        jTextArea3.setBackground(new java.awt.Color(245, 245, 245));
+        jTextArea3.setBackground(new java.awt.Color(244, 247, 247));
         jTextArea3.setColumns(20);
-        jTextArea3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jTextArea3.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jTextArea3.setRows(5);
-        jTextArea3.setText("At iPETCARE, our mission is to deliver compassionate,  convenient, and \nhigh-quality pet services that ensure the health, happiness, and well-being of every pet in our care. \n We strive to create a trusted platform that supports pet owners with everything from scheduling \nappointments to tracking medical records.");
+        jTextArea3.setText(" At iPETCARE, our mission is to deliver compassionate,  convenient, and  high-quality\n pet services that ensure the health, happiness, and well-being of every pet in our care. \n\n We strive to create a trusted platform that supports pet owners with everything from\n scheduling appointments to tracking medical records.\n");
+        jTextArea3.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
 
         javax.swing.GroupLayout aboutUsPanelLayout = new javax.swing.GroupLayout(aboutUsPanel);
         aboutUsPanel.setLayout(aboutUsPanelLayout);
         aboutUsPanelLayout.setHorizontalGroup(
             aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGap(30, 30, 30)
+                .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextArea3, javax.swing.GroupLayout.PREFERRED_SIZE, 972, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                            .addGap(40, 40, 40)
-                            .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                            .addGap(42, 42, 42)
-                            .addComponent(jLabel17, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                            .addGap(20, 20, 20)
-                            .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(166, Short.MAX_VALUE))
+                    .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, 980, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(aboutUsPanelLayout.createSequentialGroup()
+                        .addGap(9, 9, 9)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(128, Short.MAX_VALUE))
         );
         aboutUsPanelLayout.setVerticalGroup(
             aboutUsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(aboutUsPanelLayout.createSequentialGroup()
-                .addGap(40, 40, 40)
+                .addGap(43, 43, 43)
                 .addComponent(jLabel14)
-                .addGap(15, 15, 15)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jTextArea3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(51, 51, 51)
+                .addGap(59, 59, 59)
                 .addComponent(jLabel17)
-                .addGap(30, 30, 30)
-                .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jTextArea2, javax.swing.GroupLayout.PREFERRED_SIZE, 172, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -1512,7 +1776,7 @@ private void loadAppointmentForEditing(String Id) {
                 .addGap(0, 0, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, settingsPanelLayout.createSequentialGroup()
                 .addGroup(settingsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, 963, Short.MAX_VALUE)
+                    .addComponent(jPanel11, javax.swing.GroupLayout.DEFAULT_SIZE, 941, Short.MAX_VALUE)
                     .addComponent(aboutUsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -1529,13 +1793,12 @@ private void loadAppointmentForEditing(String Id) {
         jPanel8.setPreferredSize(new java.awt.Dimension(500, 400));
         jPanel8.setLayout(new java.awt.BorderLayout());
 
-        jPanel12.setBackground(new java.awt.Color(244, 247, 247));
+        jPanel12.setBackground(new java.awt.Color(242, 244, 245));
         jPanel12.setPreferredSize(new java.awt.Dimension(1400, 82));
 
         jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel5.setForeground(new java.awt.Color(255, 255, 255));
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel5.setText("Select Service Types");
+        jLabel5.setText("SELECT SERVICE TYPES");
 
         javax.swing.GroupLayout jPanel12Layout = new javax.swing.GroupLayout(jPanel12);
         jPanel12.setLayout(jPanel12Layout);
@@ -1543,8 +1806,8 @@ private void loadAppointmentForEditing(String Id) {
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel12Layout.createSequentialGroup()
                 .addGap(15, 15, 15)
-                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 1354, Short.MAX_VALUE)
-                .addGap(29, 29, 29))
+                .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 1313, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel12Layout.setVerticalGroup(
             jPanel12Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1559,7 +1822,7 @@ private void loadAppointmentForEditing(String Id) {
         jPanel14.setBackground(new java.awt.Color(244, 247, 247));
         jPanel14.setLayout(new java.awt.GridLayout(2, 0, 5, 0));
 
-        jPanel21.setBackground(new java.awt.Color(244, 247, 247));
+        jPanel21.setBackground(new java.awt.Color(242, 244, 245));
         jPanel21.setPreferredSize(new java.awt.Dimension(1400, 75));
         jPanel21.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
@@ -1567,6 +1830,8 @@ private void loadAppointmentForEditing(String Id) {
         groomingButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/groomss.png"))); // NOI18N
         groomingButton.setText("Grooming Services");
         groomingButton.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        groomingButton.setFocusable(false);
+        groomingButton.setOpaque(false);
         groomingButton.setPreferredSize(new java.awt.Dimension(180, 75));
         groomingButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1636,7 +1901,9 @@ private void loadAppointmentForEditing(String Id) {
         });
         jPanel21.add(trainingButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 130, 210, -1));
 
-        addButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        addButton.setBackground(new java.awt.Color(7, 122, 125));
+        addButton.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
+        addButton.setForeground(new java.awt.Color(255, 255, 255));
         addButton.setText("Add");
         addButton.setPreferredSize(new java.awt.Dimension(100, 25));
         addButton.addActionListener(new java.awt.event.ActionListener() {
@@ -1644,7 +1911,7 @@ private void loadAppointmentForEditing(String Id) {
                 addButtonActionPerformed(evt);
             }
         });
-        jPanel21.add(addButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(630, 250, -1, -1));
+        jPanel21.add(addButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(620, 250, 110, 30));
 
         jPanel14.add(jPanel21);
 
@@ -1652,24 +1919,23 @@ private void loadAppointmentForEditing(String Id) {
         jPanel15.setPreferredSize(new java.awt.Dimension(1400, 334));
         jPanel15.setLayout(new java.awt.BorderLayout());
 
-        jPanel19.setBackground(new java.awt.Color(244, 247, 247));
+        jPanel19.setBackground(new java.awt.Color(242, 244, 245));
         jPanel19.setPreferredSize(new java.awt.Dimension(1400, 334));
         jPanel19.setLayout(new java.awt.GridLayout(2, 0));
 
-        jPanel23.setBackground(new java.awt.Color(244, 247, 247));
+        jPanel23.setBackground(new java.awt.Color(242, 244, 245));
         jPanel23.setPreferredSize(new java.awt.Dimension(1400, 167));
 
         jPanel18.setLayout(new java.awt.CardLayout());
 
-        dayCareServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        dayCareServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
         dayCareServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         dayCareServicesPanel.setFocusable(false);
         dayCareServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         dayCareServicesPanel.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBox11.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox11.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox11.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox11.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox11.setText("Pet Sitting (In-home care)");
         jCheckBox11.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1678,22 +1944,20 @@ private void loadAppointmentForEditing(String Id) {
         });
         dayCareServicesPanel.add(jCheckBox11, new java.awt.GridBagConstraints());
 
-        jCheckBox12.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox12.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox12.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox12.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox12.setText("Feeding & Medication Management");
         dayCareServicesPanel.add(jCheckBox12, new java.awt.GridBagConstraints());
 
         jPanel18.add(dayCareServicesPanel, "card4");
 
-        trainingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        trainingServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
         trainingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         trainingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         trainingServicesPanel.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBox13.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox13.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox13.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox13.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox13.setText("Basic Obedience Training");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1704,9 +1968,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox13, gridBagConstraints);
 
-        jCheckBox14.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox14.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox14.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox14.setText("Potty Training");
         jCheckBox14.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1721,9 +1984,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox14, gridBagConstraints);
 
-        jCheckBox15.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox15.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox15.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox15.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox15.setText("Behavioral Correction");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1734,9 +1996,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox15, gridBagConstraints);
 
-        jCheckBox16.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox16.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox16.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox16.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox16.setText("Puppy Socialization");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1747,9 +2008,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         trainingServicesPanel.add(jCheckBox16, gridBagConstraints);
 
-        jCheckBox17.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox17.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox17.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox17.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox17.setText("Trick Training");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 5;
@@ -1761,15 +2021,14 @@ private void loadAppointmentForEditing(String Id) {
 
         jPanel18.add(trainingServicesPanel, "card5");
 
-        miscellaneousServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        miscellaneousServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
         miscellaneousServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         miscellaneousServicesPanel.setFocusable(false);
         miscellaneousServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         miscellaneousServicesPanel.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBox18.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox18.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox18.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox18.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox18.setText("Pet Photography Session");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1779,9 +2038,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox18, gridBagConstraints);
 
-        jCheckBox19.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox19.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox19.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox19.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox19.setText("Pet Birthday Celebration");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1790,9 +2048,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox19, gridBagConstraints);
 
-        jCheckBox20.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox20.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox20.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox20.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox20.setText("Pet Massage or Spa");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1803,9 +2060,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox20, gridBagConstraints);
 
-        jCheckBox21.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox21.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox21.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox21.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox21.setText("Pet Taxi (Pickup & Drop-off service)");
         jCheckBox21.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1820,9 +2076,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         miscellaneousServicesPanel.add(jCheckBox21, gridBagConstraints);
 
-        jCheckBox22.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox22.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox22.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox22.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox22.setText("Pet Nutrition Consultation");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
@@ -1834,40 +2089,36 @@ private void loadAppointmentForEditing(String Id) {
 
         jPanel18.add(miscellaneousServicesPanel, "card6");
 
-        boardingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
-        boardingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        boardingServicesPanel.setBackground(new java.awt.Color(244, 247, 247));
+        boardingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 51, 51), 2));
         boardingServicesPanel.setFocusable(false);
         boardingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         boardingServicesPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 60));
 
-        jCheckBox23.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox23.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox23.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox23.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox23.setText("Full-Day Boarding");
         boardingServicesPanel.add(jCheckBox23);
 
-        jCheckBox24.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox24.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox24.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox24.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox24.setText("Half-Day Boarding");
         boardingServicesPanel.add(jCheckBox24);
 
-        jCheckBox25.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox25.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox25.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox25.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox25.setText("Overnight Stay");
         boardingServicesPanel.add(jCheckBox25);
 
         jPanel18.add(boardingServicesPanel, "card7");
 
-        groomingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        groomingServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
         groomingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         groomingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         groomingServicesPanel.setLayout(new java.awt.GridBagLayout());
 
-        jCheckBox1.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox1.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox1.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox1.setText("Full Grooming");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1878,9 +2129,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(20, 30, 0, 0);
         groomingServicesPanel.add(jCheckBox1, gridBagConstraints);
 
-        jCheckBox2.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox2.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox2.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox2.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox2.setText("Bath Only");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1889,9 +2139,8 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.insets = new java.awt.Insets(24, 30, 0, 0);
         groomingServicesPanel.add(jCheckBox2, gridBagConstraints);
 
-        jCheckBox3.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox3.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox3.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox3.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox3.setText("Nail Clipping");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
@@ -1900,6 +2149,82 @@ private void loadAppointmentForEditing(String Id) {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         gridBagConstraints.insets = new java.awt.Insets(20, 0, 0, 0);
         groomingServicesPanel.add(jCheckBox3, gridBagConstraints);
+
+        jCheckBox26.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox26.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox26.setText("Bath Only");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 30, 0, 0);
+        groomingServicesPanel.add(jCheckBox26, gridBagConstraints);
+
+        jCheckBox27.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox27.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox27.setText("Nail Clipping");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 0, 0, 0);
+        groomingServicesPanel.add(jCheckBox27, gridBagConstraints);
+
+        jCheckBox28.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox28.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox28.setText("De-shedding Treatment");
+        jCheckBox28.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox28ActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 9;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 39, 0, 0);
+        groomingServicesPanel.add(jCheckBox28, gridBagConstraints);
+
+        jCheckBox29.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox29.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox29.setText("Flea/Tick Treatment");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 12;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 10;
+        gridBagConstraints.ipadx = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 20, 0, 0);
+        groomingServicesPanel.add(jCheckBox29, gridBagConstraints);
+
+        jCheckBox30.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox30.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox30.setText("Teeth Brushing");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 8;
+        gridBagConstraints.ipadx = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(20, 39, 0, 0);
+        groomingServicesPanel.add(jCheckBox30, gridBagConstraints);
+
+        jCheckBox31.setBackground(new java.awt.Color(255, 255, 255));
+        jCheckBox31.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jCheckBox31.setText("Ear Cleaning");
+        jCheckBox31.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBox31ActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        gridBagConstraints.insets = new java.awt.Insets(24, 0, 0, 0);
+        groomingServicesPanel.add(jCheckBox31, gridBagConstraints);
 
         jCheckBox4.setBackground(new java.awt.Color(102, 102, 102));
         jCheckBox4.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -1962,15 +2287,14 @@ private void loadAppointmentForEditing(String Id) {
 
         jPanel18.add(groomingServicesPanel, "card2");
 
-        petWalkingServicesPanel.setBackground(new java.awt.Color(102, 102, 102));
+        petWalkingServicesPanel.setBackground(new java.awt.Color(255, 255, 255));
         petWalkingServicesPanel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         petWalkingServicesPanel.setFocusable(false);
         petWalkingServicesPanel.setPreferredSize(new java.awt.Dimension(580, 170));
         petWalkingServicesPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 60));
 
-        jCheckBox8.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox8.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox8.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox8.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox8.setText("30-Minute Walk");
         jCheckBox8.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1979,9 +2303,8 @@ private void loadAppointmentForEditing(String Id) {
         });
         petWalkingServicesPanel.add(jCheckBox8);
 
-        jCheckBox9.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox9.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox9.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox9.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox9.setText("1-Hour Walk");
         jCheckBox9.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -1990,9 +2313,8 @@ private void loadAppointmentForEditing(String Id) {
         });
         petWalkingServicesPanel.add(jCheckBox9);
 
-        jCheckBox10.setBackground(new java.awt.Color(102, 102, 102));
+        jCheckBox10.setBackground(new java.awt.Color(255, 255, 255));
         jCheckBox10.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        jCheckBox10.setForeground(new java.awt.Color(255, 255, 255));
         jCheckBox10.setText("Daily Walk Package");
         petWalkingServicesPanel.add(jCheckBox10);
 
@@ -2002,21 +2324,21 @@ private void loadAppointmentForEditing(String Id) {
         jPanel23.setLayout(jPanel23Layout);
         jPanel23Layout.setHorizontalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1398, Short.MAX_VALUE)
+            .addGap(0, 1298, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 399, Short.MAX_VALUE)
+                    .addGap(0, 350, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 599, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 400, Short.MAX_VALUE)))
+                    .addGap(0, 349, Short.MAX_VALUE)))
         );
         jPanel23Layout.setVerticalGroup(
             jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 152, Short.MAX_VALUE)
+            .addGap(0, 138, Short.MAX_VALUE)
             .addGroup(jPanel23Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel23Layout.createSequentialGroup()
-                    .addGap(0, 7, Short.MAX_VALUE)
+                    .addGap(0, 0, Short.MAX_VALUE)
                     .addComponent(jPanel18, javax.swing.GroupLayout.PREFERRED_SIZE, 138, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGap(0, 7, Short.MAX_VALUE)))
+                    .addGap(0, 0, Short.MAX_VALUE)))
         );
 
         jPanel19.add(jPanel23);
@@ -2031,16 +2353,15 @@ private void loadAppointmentForEditing(String Id) {
 
         jPanel10.add(servicesPanel, "card5");
 
-        appointmentsPanel.setBackground(new java.awt.Color(255, 255, 255));
+        appointmentsPanel.setBackground(new java.awt.Color(242, 244, 245));
         appointmentsPanel.setFocusable(false);
-        appointmentsPanel.setMaximumSize(new java.awt.Dimension(1300, 700));
-        appointmentsPanel.setMinimumSize(new java.awt.Dimension(1300, 660));
-        appointmentsPanel.setPreferredSize(new java.awt.Dimension(1400, 500));
+        appointmentsPanel.setMaximumSize(new java.awt.Dimension(1400, 850));
+        appointmentsPanel.setMinimumSize(new java.awt.Dimension(1400, 850));
+        appointmentsPanel.setPreferredSize(new java.awt.Dimension(1400, 850));
         appointmentsPanel.setRequestFocusEnabled(false);
 
         jTable1.setBackground(new java.awt.Color(244, 247, 247));
-        jTable1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
-        jTable1.setFont(new java.awt.Font("Dialog", 0, 11)); // NOI18N
+        jTable1.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
             },
@@ -2067,9 +2388,10 @@ private void loadAppointmentForEditing(String Id) {
         });
         jScrollPane1.setViewportView(jTable1);
 
-        jButton3.setBackground(new java.awt.Color(204, 204, 204));
-        jButton3.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/delete.png"))); // NOI18N
+        jButton3.setBackground(new java.awt.Color(211, 47, 47));
+        jButton3.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jButton3.setForeground(new java.awt.Color(255, 255, 255));
+        jButton3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/1.png"))); // NOI18N
         jButton3.setText("Delete");
         jButton3.setToolTipText("");
         jButton3.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -2081,9 +2403,10 @@ private void loadAppointmentForEditing(String Id) {
             }
         });
 
-        jButton4.setBackground(new java.awt.Color(204, 204, 204));
-        jButton4.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/update.png"))); // NOI18N
+        jButton4.setBackground(new java.awt.Color(249, 168, 37));
+        jButton4.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jButton4.setForeground(new java.awt.Color(255, 255, 255));
+        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/4_1.png"))); // NOI18N
         jButton4.setText("Update");
         jButton4.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jButton4.setIconTextGap(0);
@@ -2095,13 +2418,15 @@ private void loadAppointmentForEditing(String Id) {
             }
         });
 
-        jButton5.setBackground(new java.awt.Color(204, 204, 204));
-        jButton5.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/edit.png"))); // NOI18N
+        jButton5.setBackground(new java.awt.Color(84, 110, 122));
+        jButton5.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jButton5.setForeground(new java.awt.Color(255, 255, 255));
+        jButton5.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/2.png"))); // NOI18N
         jButton5.setText("Edit");
         jButton5.setToolTipText("");
         jButton5.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         jButton5.setIconTextGap(0);
+        jButton5.setMargin(new java.awt.Insets(2, 10, 3, 14));
         jButton5.setPreferredSize(new java.awt.Dimension(83, 58));
         jButton5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -2109,9 +2434,10 @@ private void loadAppointmentForEditing(String Id) {
             }
         });
 
-        jButton6.setBackground(new java.awt.Color(204, 204, 204));
+        jButton6.setBackground(new java.awt.Color(63, 81, 181));
         jButton6.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
-        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/print.png"))); // NOI18N
+        jButton6.setForeground(new java.awt.Color(255, 255, 255));
+        jButton6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/3_2.png"))); // NOI18N
         jButton6.setText("Print Receipt");
         jButton6.setAlignmentY(0.1F);
         jButton6.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -2124,11 +2450,12 @@ private void loadAppointmentForEditing(String Id) {
         });
 
         jPanel13.setBackground(new java.awt.Color(244, 247, 247));
-        jPanel13.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
+        jPanel13.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 2, true));
         jPanel13.setAutoscrolls(true);
         jPanel13.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel7.setBackground(new java.awt.Color(244, 247, 247));
+        jPanel7.setToolTipText("");
         jPanel7.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel7.setBackground(new java.awt.Color(46, 46, 46));
@@ -2136,19 +2463,19 @@ private void loadAppointmentForEditing(String Id) {
         jLabel7.setForeground(new java.awt.Color(46, 46, 46));
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel7.setText("PET INFORMATION");
-        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 0, 250, 70));
+        jPanel7.add(jLabel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 530, 70));
 
-        jLabel8.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel8.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel8.setText("Pet Name:");
-        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 80, 80, 20));
+        jPanel7.add(jLabel8, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 80, 80, 20));
 
-        jLabel9.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel9.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel9.setText("Species:");
-        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 170, 70, -1));
+        jPanel7.add(jLabel9, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 170, 70, -1));
 
-        jLabel10.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel10.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel10.setText("Breed:");
-        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 80, 60, -1));
+        jPanel7.add(jLabel10, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 80, 60, -1));
 
         petNameTextfield.setBackground(new java.awt.Color(244, 247, 247));
         petNameTextfield.setForeground(new java.awt.Color(51, 51, 51));
@@ -2175,15 +2502,15 @@ private void loadAppointmentForEditing(String Id) {
         });
         jPanel7.add(breedTextField, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 110, 170, 30));
 
-        jLabel15.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel15.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel15.setText("Schedule:");
-        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 240, -1, 20));
+        jPanel7.add(jLabel15, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 250, -1, 20));
 
-        jLabel16.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel16.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel16.setText("Assign Assistant:");
-        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(290, 170, -1, -1));
+        jPanel7.add(jLabel16, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 170, -1, -1));
 
-        servicebutton.setBackground(new java.awt.Color(0, 128, 129));
+        servicebutton.setBackground(new java.awt.Color(7, 122, 125));
         servicebutton.setForeground(new java.awt.Color(255, 255, 255));
         servicebutton.setText("Select Service");
         servicebutton.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -2192,7 +2519,7 @@ private void loadAppointmentForEditing(String Id) {
                 servicebuttonActionPerformed(evt);
             }
         });
-        jPanel7.add(servicebutton, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 270, 170, 30));
+        jPanel7.add(servicebutton, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 280, 170, 30));
 
         jDateChooser1.setBackground(new java.awt.Color(244, 247, 247));
         jPanel7.add(jDateChooser1, new org.netbeans.lib.awtextra.AbsoluteConstraints(60, 280, 170, 30));
@@ -2204,14 +2531,14 @@ private void loadAppointmentForEditing(String Id) {
                 JComboBoxActionPerformed(evt);
             }
         });
-        jPanel7.add(JComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 210, 170, 30));
+        jPanel7.add(JComboBox, new org.netbeans.lib.awtextra.AbsoluteConstraints(310, 200, 170, 30));
 
         jPanel13.add(jPanel7, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 530, 380));
 
         jScrollPane3.setViewportView(jPanel13);
 
         jPanel5.setBackground(new java.awt.Color(244, 247, 247));
-        jPanel5.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 0, 0), 1, true));
+        jPanel5.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 2, true));
         jPanel5.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel6.setBackground(new java.awt.Color(244, 247, 247));
@@ -2232,9 +2559,10 @@ private void loadAppointmentForEditing(String Id) {
         jPanel6.add(totalBillTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(120, 330, 140, 30));
 
         jTextArea1.setEditable(false);
-        jTextArea1.setBackground(new java.awt.Color(255, 255, 255));
+        jTextArea1.setBackground(new java.awt.Color(244, 247, 247));
         jTextArea1.setColumns(20);
         jTextArea1.setRows(5);
+        jTextArea1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 51, 51)));
         jScrollPane4.setViewportView(jTextArea1);
 
         jPanel6.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 40, 420, 280));
@@ -2242,9 +2570,9 @@ private void loadAppointmentForEditing(String Id) {
         jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel13.setText("SELECTED SERVICES");
-        jPanel6.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(90, 10, 240, -1));
+        jPanel6.add(jLabel13, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 10, 440, -1));
 
-        addAppointmentButton.setBackground(new java.awt.Color(0, 128, 129));
+        addAppointmentButton.setBackground(new java.awt.Color(7, 122, 125));
         addAppointmentButton.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
         addAppointmentButton.setForeground(new java.awt.Color(255, 255, 255));
         addAppointmentButton.setText("Add Appointment");
@@ -2259,7 +2587,7 @@ private void loadAppointmentForEditing(String Id) {
         jPanel5.add(jPanel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(10, 10, 440, 380));
 
         jPanel9.setBackground(new java.awt.Color(244, 247, 247));
-        jPanel9.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jPanel9.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 2, true));
         jPanel9.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel16.setBackground(new java.awt.Color(244, 247, 247));
@@ -2269,9 +2597,9 @@ private void loadAppointmentForEditing(String Id) {
         jLabel2.setForeground(new java.awt.Color(46, 46, 46));
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel2.setText("CLIENT INFORMATION");
-        jPanel16.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 30, 240, -1));
+        jPanel16.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 30, 280, -1));
 
-        jLabel3.setFont(new java.awt.Font("Dialog", 1, 11)); // NOI18N
+        jLabel3.setFont(new java.awt.Font("Dialog", 1, 12)); // NOI18N
         jLabel3.setText("Client Name:");
         jPanel16.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 90, 100, 30));
 
@@ -2290,7 +2618,7 @@ private void loadAppointmentForEditing(String Id) {
         addressTextfield.setBackground(new java.awt.Color(244, 247, 247));
         jPanel16.add(addressTextfield, new org.netbeans.lib.awtextra.AbsoluteConstraints(110, 160, 140, 30));
 
-        emailTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        emailTextfield.setBackground(new java.awt.Color(244, 247, 247));
         emailTextfield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 emailTextfieldActionPerformed(evt);
@@ -2308,7 +2636,7 @@ private void loadAppointmentForEditing(String Id) {
         jLabel6.setText("Contact:");
         jPanel16.add(jLabel6, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 310, 50, -1));
 
-        contactTextfield.setBackground(new java.awt.Color(230, 230, 230));
+        contactTextfield.setBackground(new java.awt.Color(244, 247, 247));
         contactTextfield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 contactTextfieldActionPerformed(evt);
@@ -2323,8 +2651,8 @@ private void loadAppointmentForEditing(String Id) {
         appointmentsPanelLayout.setHorizontalGroup(
             appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                .addGap(32, 32, 32)
-                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGap(27, 27, 27)
+                .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                     .addGroup(appointmentsPanelLayout.createSequentialGroup()
                         .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 550, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(10, 10, 10)
@@ -2333,15 +2661,14 @@ private void loadAppointmentForEditing(String Id) {
                         .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 460, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(2, 2, 2))
                     .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1169, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(jButton4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jButton6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 1156, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(jButton3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jButton6, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jButton5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(41, Short.MAX_VALUE))
         );
         appointmentsPanelLayout.setVerticalGroup(
             appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -2354,15 +2681,15 @@ private void loadAppointmentForEditing(String Id) {
                 .addGap(28, 28, 28)
                 .addGroup(appointmentsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(appointmentsPanelLayout.createSequentialGroup()
-                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton4)
-                        .addGap(13, 13, 13)
                         .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jButton6))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(108, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 261, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(137, Short.MAX_VALUE))
         );
 
         jPanel10.add(appointmentsPanel, "card3");
@@ -2371,7 +2698,6 @@ private void loadAppointmentForEditing(String Id) {
         recordsPanel.setMaximumSize(new java.awt.Dimension(1400, 700));
         recordsPanel.setPreferredSize(new java.awt.Dimension(1450, 700));
 
-        jScrollPane2.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         jScrollPane2.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         jScrollPane2.setMaximumSize(null);
         jScrollPane2.setMinimumSize(new java.awt.Dimension(0, 0));
@@ -2431,8 +2757,11 @@ private void loadAppointmentForEditing(String Id) {
         // Ensure table fills viewport
         recordsTable.setFillsViewportHeight(true);
 
+        jLabel1.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
         jLabel1.setText("Search:");
 
+        jTextField1.setBackground(new java.awt.Color(244, 247, 247));
+        jTextField1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
         jTextField1.setPreferredSize(new java.awt.Dimension(64, 24));
         jTextField1.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -2453,36 +2782,57 @@ private void loadAppointmentForEditing(String Id) {
             }
         });
 
+        appointmentCount.setBackground(new java.awt.Color(255, 255, 255));
+        appointmentCount.setForeground(new java.awt.Color(255, 255, 255));
+        appointmentCount.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 51, 51), 1, true));
+
+        jLabel18.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabel18.setText("Total Records:");
+
+        jLabel19.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel19.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/recordsF.png"))); // NOI18N
+
+        jLabel20.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/SEARCH 2.png"))); // NOI18N
+        jLabel20.setIconTextGap(0);
+        jLabel20.setPreferredSize(new java.awt.Dimension(35, 40));
+
         javax.swing.GroupLayout recordsPanelLayout = new javax.swing.GroupLayout(recordsPanel);
         recordsPanel.setLayout(recordsPanelLayout);
         recordsPanelLayout.setHorizontalGroup(
             recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(recordsPanelLayout.createSequentialGroup()
+                .addGap(64, 64, 64)
                 .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(recordsPanelLayout.createSequentialGroup()
-                        .addGap(38, 38, 38)
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(76, 76, 76)
-                        .addComponent(appointmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, 266, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(recordsPanelLayout.createSequentialGroup()
-                        .addGap(46, 46, 46)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1278, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(126, Short.MAX_VALUE))
+                        .addComponent(jLabel20, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 176, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(62, 62, 62)
+                        .addComponent(jLabel18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(appointmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 1289, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         recordsPanelLayout.setVerticalGroup(
             recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(recordsPanelLayout.createSequentialGroup()
-                .addGap(16, 16, 16)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(appointmentCount, javax.swing.GroupLayout.PREFERRED_SIZE, 24, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel1)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(18, 18, 18)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, recordsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel18))
+                    .addComponent(jLabel20, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel19, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(appointmentCount, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 591, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(51, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel10.add(recordsPanel, "card4");
@@ -2498,46 +2848,40 @@ private void loadAppointmentForEditing(String Id) {
     private void appointmentsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_appointmentsButtonActionPerformed
         switchPanel(appointmentsPanel);
         highlightButtonBorder(appointmentsButton);
-//        highlightButton(appointmentsButton);   
     }//GEN-LAST:event_appointmentsButtonActionPerformed
     
     private void recordsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordsButtonActionPerformed
-         switchPanel(recordsPanel);
-         highlightButtonBorder(recordsButton);
-//         highlightButton(recordsButton);
-         loadRecordsTable(); 
-        int rowCount = recordsTable.getRowCount();
-        appointmentCount.setText("Total Records: " + rowCount);  
+        switchPanel(recordsPanel);
+     highlightButtonBorder(recordsButton);
+     loadRecordsTable(); 
+     
+     // Update appointment count
+     int rowCount = recordsTable.getRowCount();
+     appointmentCount.setText("   "+String.valueOf(rowCount));
+     appointmentCount.setOpaque(true);
+     appointmentCount.setBackground(Color.WHITE);
+     appointmentCount.setForeground(Color.BLACK);
     }//GEN-LAST:event_recordsButtonActionPerformed
 
     private void appointmentsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMousePressed
-//        appointmentsButton.setBackground(clickedcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        settingsButton.setBackground(defaultcolor);
-//        appointmentsButton.setForeground(white);
+// REMOVED - background changes not needed//        
     }//GEN-LAST:event_appointmentsButtonMousePressed
 
     private void recordsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMousePressed
-//        appointmentsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(clickedcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        settingsButton.setBackground(defaultcolor);
-//        recordsButton.setForeground(white);
+// REMOVED - background changes not needed       
     }//GEN-LAST:event_recordsButtonMousePressed
 
     private void appointmentsButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseReleased
-        //appointmentsButton.setBackground(defaultcolor);
+      // REMOVED - background changes not needed
     }//GEN-LAST:event_appointmentsButtonMouseReleased
 
     private void recordsButtonMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMouseReleased
-       // recordsButton.setBackground(defaultcolor);
+   // REMOVED - background changes not needed
     }//GEN-LAST:event_recordsButtonMouseReleased
 
     private void settingsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsButtonActionPerformed
         switchPanel(settingsPanel);
         highlightButtonBorder(settingsButton);
-//        highlightButton(settingsButton);
     }//GEN-LAST:event_settingsButtonActionPerformed
     
     private void appendIfSelected(StringBuilder builder, JCheckBox checkBox) {
@@ -2585,7 +2929,6 @@ private void loadAppointmentForEditing(String Id) {
         JOptionPane.showMessageDialog(this, "Error loading client data:\n" + ex.getMessage());
     }
 }
-    
     
     private void groomingButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_groomingButtonActionPerformed
         
@@ -2675,9 +3018,9 @@ private void loadAppointmentForEditing(String Id) {
         highlightServiceButtonBorder(miscellaneousButton);
     }//GEN-LAST:event_miscellaneousButtonActionPerformed
 
-private final Map<String, Double> servicePrices = createServicePricesMap();
+    private final Map<String, Double> servicePrices = createServicePricesMap();
 
-private Map<String, Double> createServicePricesMap() {
+    private Map<String, Double> createServicePricesMap() {
     Map<String, Double> prices = new HashMap<>();
     
     prices.put("Full-Day Boarding", 100.00); 
@@ -2711,8 +3054,6 @@ private Map<String, Double> createServicePricesMap() {
     prices.put("Potty Training", 100.00); 
     prices.put("Puppy Socialization", 65.00); 
 
-    
-    
     return prices;
 }
     private void addButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addButtonActionPerformed
@@ -2738,10 +3079,6 @@ private Map<String, Double> createServicePricesMap() {
             "Please select at least one service before adding.", 
             "No Services Selected", 
             JOptionPane.INFORMATION_MESSAGE);
-//        totalBillTextfield.setText("₱0.00");
-//        jTextArea1.setText("");
-//        switchPanel(appointmentsPanel);
-//        highlightButtonBorder(appointmentsButton);
         return;
     }
 
@@ -2953,11 +3290,21 @@ private Map<String, Double> createServicePricesMap() {
         // **CHECK IF EDITING EXISTING APPOINTMENT**
         if (selectedAppointmentId != -1) {
             
-             if (!hasDataChanged()) {
+            if (!hasDataChanged()) {
         JOptionPane.showMessageDialog(this, 
             "No data has been changed or modified.", 
             "No Changes", 
             JOptionPane.INFORMATION_MESSAGE);
+        
+        // **UNLOAD FIELDS AFTER MESSAGE**
+        clearFormFields();
+        uncheckAllServices();
+        JComboBox.setSelectedIndex(-1);
+        selectedAppointmentId = -1;
+        fieldsLoaded = false;
+        originalAppointmentData.clear();
+        jTable1.clearSelection();
+        
         return;
     }
             // UPDATE existing appointment
@@ -3047,9 +3394,10 @@ private Map<String, Double> createServicePricesMap() {
                 loadRecordsTable(null);
                 
                 JOptionPane.showMessageDialog(this, 
-                    "Appointment added successfully!\n\nAppointment ID: " + generatedId, 
-                    "Success", 
-                    JOptionPane.INFORMATION_MESSAGE);
+                    "Appointment added successfully!","Success", JOptionPane.INFORMATION_MESSAGE);
+//                        \n\nAppointment ID: " + generatedId, 
+//                    "Success", 
+//                    JOptionPane.INFORMATION_MESSAGE);
                 
                 clearFormFields();
                 uncheckAllServices();
@@ -3091,8 +3439,9 @@ private Map<String, Double> createServicePricesMap() {
     }//GEN-LAST:event_petNameTextfieldActionPerformed
 
     private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
-                                       
-    if (selectedAppointmentId == -1) {
+                                         
+    // Check if a row is actually selected in jTable1
+    if (jTable1.getSelectedRow() == -1 || selectedAppointmentId == -1) {
         JOptionPane.showMessageDialog(this, 
             "Please select an appointment from the table to print a receipt.", 
             "No Selection", 
@@ -3100,7 +3449,7 @@ private Map<String, Double> createServicePricesMap() {
         return;
     }
 
-    // Load data directly from database if fields are not loaded
+    // Load data directly from database
     Connection conn = null;
     PreparedStatement ps = null;
     ResultSet rs = null;
@@ -3125,8 +3474,8 @@ private Map<String, Double> createServicePricesMap() {
             double totalBill = rs.getDouble("total_bill");
 
             printFrame printer = new printFrame(
-            clientName, address, email, contact, petName, species, breed, 
-            selectedServices, formattedSchedule, assistant, totalBill
+                clientName, address, email, contact, petName, species, breed, 
+                selectedServices, formattedSchedule, assistant, totalBill
             );
             printer.setVisible(true);
         } else {
@@ -3151,6 +3500,15 @@ private Map<String, Double> createServicePricesMap() {
                                      
     if (selectedAppointmentId == -1) {
         JOptionPane.showMessageDialog(this, "Please select an appointment from the table to edit.", "No Selection", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
+    
+    // **NEW: Check if already in edit mode**
+    if (fieldsLoaded) {
+        JOptionPane.showMessageDialog(this, 
+            "You are already in edit mode.\n\nModify the fields and click Update to save changes,\nor select a different appointment to edit.", 
+            "Already in Edit Mode", 
+            JOptionPane.INFORMATION_MESSAGE);
         return;
     }
     
@@ -3268,6 +3626,16 @@ private Map<String, Double> createServicePricesMap() {
         "No data has been changed or modified.", 
         "No Changes", 
         JOptionPane.INFORMATION_MESSAGE);
+    
+    // **UNLOAD FIELDS AFTER MESSAGE**
+    clearFormFields();
+    uncheckAllServices();
+    JComboBox.setSelectedIndex(-1);
+    selectedAppointmentId = -1;
+    fieldsLoaded = false;
+    originalAppointmentData.clear();
+    jTable1.clearSelection();
+    
     return;
 }
 
@@ -3395,30 +3763,6 @@ if (selectedAppointmentId == -1) {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
-    // MODIFIED: Clear fields if they're loaded and user clicks a different row
-    int selectedRow = jTable1.getSelectedRow();
-    if (selectedRow >= 0) {
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        // Get ID from column 4 (hidden)
-        int clickedId = (int) model.getValueAt(selectedRow, 4);
-        
-        // If fields are loaded and user clicked a DIFFERENT row, clear the fields
-        if (fieldsLoaded && clickedId != selectedAppointmentId) {
-            clearFormFields();
-            fieldsLoaded = false;
-        }
-        
-        // Update selected ID
-        selectedAppointmentId = clickedId;
-        System.out.println("Selected appointment ID: " + selectedAppointmentId);
-        // Don't load fields here - wait for Edit button click
-    } else {
-        selectedAppointmentId = -1;
-        if (fieldsLoaded) {
-            clearFormFields();
-            fieldsLoaded = false;
-        }
-    }
 
     }//GEN-LAST:event_jTable1MouseClicked
 
@@ -3430,19 +3774,13 @@ if (selectedAppointmentId == -1) {
  if (evt.getClickCount() == 1) {
         int row = recordsTable.getSelectedRow();
         if (row != -1) {
-            // Optional: You can add single-click behavior here if needed
-            // For example, just showing a preview without switching panels
+           
         }
     }
     }//GEN-LAST:event_recordsTableMouseClicked
 
     private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jTextField1KeyReleased
-//    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
-//    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
-//    recordsTable.setRowSorter(sorter);
-//
-//    String search = jTextField1.getText();
-//    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
+
 
     }//GEN-LAST:event_jTextField1KeyReleased
 
@@ -3451,39 +3789,23 @@ if (selectedAppointmentId == -1) {
     }//GEN-LAST:event_jTextField1MouseClicked
 
     private void recordsTableMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsTableMouseEntered
-        // TODO add your handling code here:
+        
     }//GEN-LAST:event_recordsTableMouseEntered
 
     private void settingsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMousePressed
-//        appointmentsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        settingsButton.setBackground(clickedcolor);
-//        settingsButton.setForeground(white);       
+// REMOVED - background changes not needed  
     }//GEN-LAST:event_settingsButtonMousePressed
 
     private void settingsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_settingsButtonMouseEntered
-//        appointmentsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        settingsButton.setBackground(clickedcolor);
-//        settingsButton.setForeground(white);
+// REMOVED - background changes not needed     
     }//GEN-LAST:event_settingsButtonMouseEntered
 
     private void recordsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_recordsButtonMouseEntered
-//        appointmentsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(clickedcolor);
-//        settingsButton.setBackground(defaultcolor);
-//        recordsButton.setForeground(white);
+// REMOVED - background changes not needed        
     }//GEN-LAST:event_recordsButtonMouseEntered
 
     private void appointmentsButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMouseEntered
-//        appointmentsButton.setBackground(clickedcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        recordsButton.setBackground(defaultcolor);
-//        settingsButton.setBackground(defaultcolor);
-//        appointmentsButton.setForeground(white);
+
     }//GEN-LAST:event_appointmentsButtonMouseEntered
 
     private void jCheckBox11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox11ActionPerformed
@@ -3495,14 +3817,16 @@ if (selectedAppointmentId == -1) {
     }//GEN-LAST:event_jCheckBox14ActionPerformed
 
     private void jTextField1MouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTextField1MouseEntered
-//    DefaultTableModel model = (DefaultTableModel) recordsTable.getModel();
-//    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
-//    recordsTable.setRowSorter(sorter);
-//
-//    String search = jTextField1.getText();
-//    sorter.setRowFilter(RowFilter.regexFilter("(?i)" + search));
-//            
+
     }//GEN-LAST:event_jTextField1MouseEntered
+
+    private void jCheckBox28ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox28ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox28ActionPerformed
+
+    private void jCheckBox31ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox31ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jCheckBox31ActionPerformed
 
     public void setSelectedServices(String services) {
         jTextArea1.setText(services);
@@ -3564,8 +3888,7 @@ if (selectedAppointmentId == -1) {
     
     return changed;
 }
-    
-    
+   
     
     private void fetchAppointments(String search) throws SQLException {
     table.setRowCount(0);
@@ -3625,7 +3948,8 @@ if (selectedAppointmentId == -1) {
         
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new homeFrame().setVisible(true);
+                //new homeFrame().setVisible(true);
+                new logInFrame().setVisible(true);
             }
         });
     }
@@ -3673,7 +3997,13 @@ if (selectedAppointmentId == -1) {
     private javax.swing.JCheckBox jCheckBox23;
     private javax.swing.JCheckBox jCheckBox24;
     private javax.swing.JCheckBox jCheckBox25;
+    private javax.swing.JCheckBox jCheckBox26;
+    private javax.swing.JCheckBox jCheckBox27;
+    private javax.swing.JCheckBox jCheckBox28;
+    private javax.swing.JCheckBox jCheckBox29;
     private javax.swing.JCheckBox jCheckBox3;
+    private javax.swing.JCheckBox jCheckBox30;
+    private javax.swing.JCheckBox jCheckBox31;
     private javax.swing.JCheckBox jCheckBox4;
     private javax.swing.JCheckBox jCheckBox5;
     private javax.swing.JCheckBox jCheckBox6;
@@ -3691,7 +4021,10 @@ if (selectedAppointmentId == -1) {
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
+    private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel20;
     private javax.swing.JLabel jLabel22;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
