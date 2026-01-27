@@ -12,9 +12,9 @@ import javax.swing.border.*;
  *
  * @author Paul Adrian
  */
-public class PetCard extends JPanel { 
-   private int appointmentId;
-    private String petName; 
+public class PetCard extends JPanel {
+    private int appointmentId;
+    private String petName;
     private String ownerName;
     private String species;
     private String breed;
@@ -206,6 +206,3 @@ public class PetCard extends JPanel {
         return ownerName;
     }
 }
-
-
-

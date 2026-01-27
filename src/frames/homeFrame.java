@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -46,6 +47,10 @@ import java.util.Random;
 import java.util.Set;
 import javax.swing.RowFilter;
 import javax.swing.table.TableRowSorter;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 
 /**
  *
@@ -231,7 +236,8 @@ appointmentsPanel.addMouseListener(new MouseAdapter() {
         TableRowSorter<TableModel> sorter = new TableRowSorter<>(recordsTable.getModel());
         recordsTable.setRowSorter(sorter);
        
-        loadRecordsTable();
+       // loadRecordsTable();
+       loadRecordsAsCards();
         updateAppointmentCount();
         
 //        setupRecordsTableSelection();
@@ -364,7 +370,8 @@ appointmentsPanel.addMouseListener(new MouseAdapter() {
 //    setupRecordsTableSelection();
 //    updateAppointmentCount();
     
-    loadRecordsTable();
+    //loadRecordsTable();
+    loadRecordsAsCards();
     updateAppointmentCount(); 
 
     jTextArea1.setEditable(false);
@@ -484,6 +491,10 @@ appointmentsPanel.addMouseListener(new MouseAdapter() {
         }
     });
 }
+    
+    
+    
+    
    private void updateAppointmentCount() {
     int rowCount = recordsTable.getRowCount();
     appointmentCount.setText(String.valueOf("   "+rowCount));
@@ -493,8 +504,138 @@ appointmentsPanel.addMouseListener(new MouseAdapter() {
     appointmentCount.revalidate();
     appointmentCount.repaint();
 }
+   
+   private void loadRecordsAsCards() {
+    // Clear existing content
+    recordsPanel.removeAll();
     
+    // Set up the main layout
+    recordsPanel.setLayout(new BorderLayout(10, 10));
+    recordsPanel.setBackground(new Color(244, 247, 247));
     
+    // Create header panel
+    JPanel headerPanel = new JPanel(new BorderLayout());
+    headerPanel.setBackground(new Color(244, 247, 247));
+    headerPanel.setBorder(new EmptyBorder(20, 30, 10, 30));
+    
+    JLabel titleLabel = new JLabel("PET RECORDS");
+    titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
+    titleLabel.setForeground(new Color(7, 122, 125));
+    
+    // Search panel
+    JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    searchPanel.setBackground(new Color(244, 247, 247));
+    
+    JTextField searchField = new JTextField(20);
+    searchField.setBorder(new LineBorder(new Color(0, 51, 51), 1));
+    searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+    
+    JLabel searchLabel = new JLabel("Search:");
+    searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    
+    searchPanel.add(searchLabel);
+    searchPanel.add(searchField);
+    
+    headerPanel.add(titleLabel, BorderLayout.WEST);
+    headerPanel.add(searchPanel, BorderLayout.EAST);
+    
+    recordsPanel.add(headerPanel, BorderLayout.NORTH);
+    
+    // Create cards container with FlowLayout
+    JPanel cardsContainer = new JPanel();
+    cardsContainer.setLayout(new FlowLayout(FlowLayout.LEFT, 20, 20));
+    cardsContainer.setBackground(new Color(244, 247, 247));
+    
+    // Wrap in scroll pane
+    JScrollPane scrollPane = new JScrollPane(cardsContainer);
+    scrollPane.setBorder(new EmptyBorder(0, 20, 20, 20));
+    scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+    
+    // Load appointments from database
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    
+    try {
+        conn = jdbcConnection.getConnection();
+        String sql = "SELECT id, pet_name, client_name, pet_species, pet_breed FROM appointments ORDER BY id DESC";
+        ps = conn.prepareStatement(sql);
+        rs = ps.executeQuery();
+        
+        while (rs.next()) {
+            int id = rs.getInt("id");
+            String petName = capitalizeFirstLetter(rs.getString("pet_name"));
+            String ownerName = capitalizeFirstLetter(rs.getString("client_name"));
+            String species = capitalizeFirstLetter(rs.getString("pet_species"));
+            String breed = capitalizeFirstLetter(rs.getString("pet_breed"));
+            
+            PetCard card = new PetCard(id, petName, ownerName, species, breed);
+            
+            // Add double-click listener to open invoice
+            card.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) {
+                        Invoice invoice = new Invoice(card.getAppointmentId());
+                        invoice.setVisible(true);
+                    }
+                }
+            });
+            
+            cardsContainer.add(card);
+        }
+        
+        // If no records found
+        if (cardsContainer.getComponentCount() == 0) {
+            JLabel noRecordsLabel = new JLabel("No pet records found. Add an appointment to see cards here.");
+            noRecordsLabel.setFont(new Font("Segoe UI", Font.ITALIC, 16));
+            noRecordsLabel.setForeground(Color.GRAY);
+            cardsContainer.add(noRecordsLabel);
+        }
+        
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Error loading pet records: " + e.getMessage(),
+            "Database Error",
+            JOptionPane.ERROR_MESSAGE);
+    } finally {
+        jdbcConnection.closeConnection(conn, ps, rs);
+    }
+    
+    // Add search functionality
+    searchField.addKeyListener(new KeyAdapter() {
+        @Override
+        public void keyReleased(KeyEvent e) {
+            String searchText = searchField.getText().toLowerCase().trim();
+            
+            for (Component comp : cardsContainer.getComponents()) {
+                if (comp instanceof PetCard) {
+                    PetCard card = (PetCard) comp;
+                    boolean matches = card.getPetName().toLowerCase().contains(searchText) ||
+                                     card.getOwnerName().toLowerCase().contains(searchText);
+                    comp.setVisible(matches);
+                }
+            }
+            
+            cardsContainer.revalidate();
+            cardsContainer.repaint();
+        }
+    });
+    
+    recordsPanel.add(scrollPane, BorderLayout.CENTER);
+    
+    recordsPanel.revalidate();
+    recordsPanel.repaint();
+}
+
+// ========================================
+// MODIFY THESE EXISTING METHODS
+// ========================================
+
+// In recordsButtonActionPerformed method, change to:
+
     
      private void setupNavigationButtons() {
     // Remove background colors and set up borders only
@@ -2500,12 +2641,11 @@ private void loadAppointmentForEditing(String Id) {
     }//GEN-LAST:event_appointmentsButtonActionPerformed
     
     private void recordsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordsButtonActionPerformed
+                                     
     switchPanel(recordsPanel);
     highlightButtonBorder(recordsButton);
-    loadRecordsTable(); 
-    
-    // Update appointment count
-    updateAppointmentCount();
+    loadRecordsAsCards();  // Changed from loadRecordsTable()
+
     }//GEN-LAST:event_recordsButtonActionPerformed
 
     private void appointmentsButtonMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_appointmentsButtonMousePressed
@@ -3003,11 +3143,16 @@ private void loadAppointmentForEditing(String Id) {
             generatedId = generatedKeys.getInt(1);
             lastAddedAppointmentId = generatedId;
         }
+            
             loadRecordsTable(null);
             updateAppointmentCount();  // Change this line
 
             JOptionPane.showMessageDialog(this, 
     "Appointment added successfully!","Success", JOptionPane.INFORMATION_MESSAGE);
+            
+            if (recordsPanel.isVisible()) {
+    loadRecordsAsCards();
+}
 
 clearFormFields();
 uncheckAllServices();
@@ -3285,6 +3430,10 @@ JComboBox.setSelectedIndex(-1);
         int rowsAffected = pstmt.executeUpdate();
         if (rowsAffected > 0) {
         JOptionPane.showMessageDialog(this, "Appointment updated successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+        
+        if (recordsPanel.isVisible()) {
+    loadRecordsAsCards();
+}
 
         loadRecordsTable();
 
@@ -3336,6 +3485,10 @@ if (selectedAppointmentId == -1) {
 
          if (rowsAffected > 0) {
     JOptionPane.showMessageDialog(this, "Appointment deleted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    
+    if (recordsPanel.isVisible()) {
+    loadRecordsAsCards();
+}
     
     loadRecordsTable();
     updateAppointmentCount();  // Make sure this line is here
