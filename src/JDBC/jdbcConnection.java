@@ -17,7 +17,6 @@ import java.sql.Statement;
  * @author ADMIN
  */
 public class jdbcConnection {
-    //private static final String url = "jdbc:mysql://  192.168.60.117:3306/petcareservices?allowPublicKeyRetrieval=true&useSSL=false";
     private static final String url = "jdbc:mysql://localhost:3306/ipetcare";
     private static final String user = "root"; 
     private static final String password = "Forprojects38"; 
@@ -43,7 +42,6 @@ public class jdbcConnection {
         }
         return conn;
     } 
-    
     
     public static void closeConnection(Connection conn, Statement stmt, ResultSet rs) {
         try {
@@ -90,7 +88,6 @@ public class jdbcConnection {
             System.out.println("❌ Test connection failed.");
         }
     }
-    
-    
+     
 }
     

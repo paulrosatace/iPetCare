@@ -733,7 +733,7 @@ private void configureServicesDisplay() {
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.CENTER);
 
-        setSize(new java.awt.Dimension(293, 589));
+        setSize(new java.awt.Dimension(301, 589));
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
